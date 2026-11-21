@@ -58,7 +58,7 @@ const SEVERITY_STYLES = {
   concern: { bg: 'bg-red-50 dark:bg-red-950/40', border: 'border-red-200 dark:border-red-500/40', text: 'text-red-900 dark:text-red-200', accent: 'text-red-600 dark:text-red-400', Icon: AlertCircle },
 };
 
-const DISMISSED_KEY = 'blair_dismissed_alerts';
+const DISMISSED_KEY = 'lunetta_dismissed_alerts';
 
 function loadDismissed(): Record<string, string> {
   try {

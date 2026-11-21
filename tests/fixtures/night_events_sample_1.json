@@ -1,0 +1,4004 @@
+{
+  "messages": [
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752087340,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-09T18:55:40Z",
+      "id": 1000000200,
+      "user_id": 900001,
+      "seen_at": null,
+      "dismissed_at": null,
+      "created_at": "2025-07-09T18:55:40Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0200"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752086396,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T18:39:55Z",
+      "id": 1000000199,
+      "user_id": 900001,
+      "seen_at": null,
+      "dismissed_at": null,
+      "created_at": "2025-07-09T18:39:55Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0199"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752086316,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-09T18:38:36Z",
+      "id": 1000000198,
+      "user_id": 900001,
+      "seen_at": null,
+      "dismissed_at": null,
+      "created_at": "2025-07-09T18:38:36Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0198"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752067376,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T13:22:55Z",
+      "id": 1000000197,
+      "user_id": 900001,
+      "seen_at": null,
+      "dismissed_at": null,
+      "created_at": "2025-07-09T13:22:55Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0197"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752067290,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T13:21:29Z",
+      "id": 1000000196,
+      "user_id": 900001,
+      "seen_at": null,
+      "dismissed_at": null,
+      "created_at": "2025-07-09T13:21:29Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0196"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752065383,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-09T12:49:42Z",
+      "id": 1000000195,
+      "user_id": 900001,
+      "seen_at": null,
+      "dismissed_at": null,
+      "created_at": "2025-07-09T12:49:42Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0195"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752062789,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T12:06:29Z",
+      "id": 1000000194,
+      "user_id": 900001,
+      "seen_at": null,
+      "dismissed_at": null,
+      "created_at": "2025-07-09T12:06:29Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0194"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752051591,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-09T08:59:51Z",
+      "id": 1000000193,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T08:59:51Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0193"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752051377,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-09T08:56:17Z",
+      "id": 1000000192,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T08:56:17Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0192"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752043285,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-09T06:41:25Z",
+      "id": 1000000191,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T06:41:25Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0191"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752043160,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-09T06:39:20Z",
+      "id": 1000000190,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T06:39:20Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0190"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752042923,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-09T06:35:22Z",
+      "id": 1000000189,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T06:35:22Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0189"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752032276,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T03:37:56Z",
+      "id": 1000000188,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T03:37:56Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0188"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752030168,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T03:02:47Z",
+      "id": 1000000187,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T03:02:47Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0187"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752020339,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T00:18:59Z",
+      "id": 1000000186,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T00:18:59Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0186"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752020197,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T00:16:37Z",
+      "id": 1000000185,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T00:16:37Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0185"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752019756,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-09T00:09:16Z",
+      "id": 1000000184,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-09T00:09:16Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0184"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752018596,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T23:49:56Z",
+      "id": 1000000183,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T23:49:56Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0183"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752018372,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T23:46:12Z",
+      "id": 1000000182,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T23:46:12Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0182"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1752018226,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T23:43:45Z",
+      "id": 1000000181,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T23:43:45Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0181"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751999584,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T18:33:04Z",
+      "id": 1000000180,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T18:33:04Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0180"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751999221,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T18:27:01Z",
+      "id": 1000000179,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T18:27:01Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0179"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751998887,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T18:21:27Z",
+      "id": 1000000178,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T18:21:27Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0178"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751998391,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T18:13:11Z",
+      "id": 1000000177,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T18:13:11Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0177"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751998234,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T18:10:34Z",
+      "id": 1000000176,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T18:10:34Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0176"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751997973,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T18:06:12Z",
+      "id": 1000000175,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T18:06:12Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0175"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751997946,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T18:05:46Z",
+      "id": 1000000174,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T18:05:46Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0174"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751996661,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T17:44:21Z",
+      "id": 1000000173,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T17:44:21Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0173"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751996530,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T17:42:10Z",
+      "id": 1000000172,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T17:42:10Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0172"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751995982,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T17:33:02Z",
+      "id": 1000000171,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T17:33:02Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0171"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751995368,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T17:22:48Z",
+      "id": 1000000170,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T17:22:48Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0170"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751994877,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T17:14:36Z",
+      "id": 1000000169,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T17:14:36Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0169"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751994429,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T17:07:09Z",
+      "id": 1000000168,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T17:07:09Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0168"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751994156,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T17:02:35Z",
+      "id": 1000000167,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T17:02:35Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0167"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751993790,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:56:29Z",
+      "id": 1000000166,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:56:29Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0166"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751993734,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:55:34Z",
+      "id": 1000000165,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:55:34Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0165"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751993598,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:53:18Z",
+      "id": 1000000164,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:53:18Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0164"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751993514,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:51:53Z",
+      "id": 1000000163,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:51:53Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0163"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751992846,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:40:45Z",
+      "id": 1000000162,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:40:45Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0162"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751992715,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:38:34Z",
+      "id": 1000000161,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:38:34Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0161"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751992306,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:31:46Z",
+      "id": 1000000160,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:31:46Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0160"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751990886,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:08:06Z",
+      "id": 1000000159,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:08:06Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0159"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751990717,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:05:17Z",
+      "id": 1000000158,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:05:17Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0158"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751990505,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T16:01:44Z",
+      "id": 1000000157,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T16:01:44Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0157"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751990342,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:59:02Z",
+      "id": 1000000156,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:59:02Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0156"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751990218,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:56:57Z",
+      "id": 1000000155,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:56:57Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0155"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751990124,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:55:23Z",
+      "id": 1000000154,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:55:23Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0154"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751990060,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:54:19Z",
+      "id": 1000000153,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:54:19Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0153"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751989941,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:52:20Z",
+      "id": 1000000152,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:52:20Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0152"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751989922,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:52:02Z",
+      "id": 1000000151,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:52:02Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0151"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751988886,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:34:46Z",
+      "id": 1000000150,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:34:46Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0150"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751988604,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:30:03Z",
+      "id": 1000000149,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:30:03Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0149"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751988515,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:28:35Z",
+      "id": 1000000148,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:28:35Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0148"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751987709,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:15:08Z",
+      "id": 1000000147,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:15:08Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0147"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751987662,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:14:22Z",
+      "id": 1000000146,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:14:22Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0146"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751987312,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:08:32Z",
+      "id": 1000000145,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:08:32Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0145"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751987302,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T15:08:21Z",
+      "id": 1000000144,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T15:08:21Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0144"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751985840,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:44:00Z",
+      "id": 1000000143,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:44:00Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0143"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751985519,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:38:39Z",
+      "id": 1000000142,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:38:39Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0142"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751985507,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:38:27Z",
+      "id": 1000000141,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:38:27Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0141"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751985284,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:34:44Z",
+      "id": 1000000140,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:34:44Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0140"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751984344,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:19:03Z",
+      "id": 1000000139,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:19:03Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0139"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751984139,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:15:39Z",
+      "id": 1000000138,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:15:39Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0138"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751983908,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:11:47Z",
+      "id": 1000000137,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:11:47Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0137"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751983559,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:05:59Z",
+      "id": 1000000136,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:05:59Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0136"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751983278,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T14:01:18Z",
+      "id": 1000000135,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T14:01:18Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0135"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751982745,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T13:52:24Z",
+      "id": 1000000134,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T13:52:24Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0134"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751982723,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T13:52:03Z",
+      "id": 1000000133,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T13:52:03Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0133"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751981744,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T13:35:43Z",
+      "id": 1000000132,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T13:35:43Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0132"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751981731,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T13:35:30Z",
+      "id": 1000000131,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T13:35:30Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0131"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751981485,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T13:31:24Z",
+      "id": 1000000130,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T13:31:24Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0130"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751981422,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T13:30:22Z",
+      "id": 1000000129,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T13:30:22Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0129"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751978739,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T12:45:39Z",
+      "id": 1000000128,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T12:45:39Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0128"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751978350,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T12:39:09Z",
+      "id": 1000000127,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T12:39:09Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0127"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751977937,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T12:32:16Z",
+      "id": 1000000126,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T12:32:16Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0126"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751976206,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T12:03:25Z",
+      "id": 1000000125,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T12:03:25Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0125"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751974664,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T11:37:44Z",
+      "id": 1000000124,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T11:37:44Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0124"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751974147,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T11:29:07Z",
+      "id": 1000000123,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T11:29:07Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0123"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751973573,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T11:19:32Z",
+      "id": 1000000122,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T11:19:32Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0122"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751973037,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T11:10:37Z",
+      "id": 1000000121,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T11:10:37Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0121"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751972054,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:54:14Z",
+      "id": 1000000120,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:54:14Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0120"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751971829,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:50:28Z",
+      "id": 1000000119,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:50:28Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0119"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751971603,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:46:43Z",
+      "id": 1000000118,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:46:43Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0118"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751971436,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:43:56Z",
+      "id": 1000000117,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:43:56Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0117"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751971335,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:42:15Z",
+      "id": 1000000116,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:42:15Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0116"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751970937,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:35:36Z",
+      "id": 1000000115,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:35:36Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0115"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751970685,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:31:24Z",
+      "id": 1000000114,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:31:24Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0114"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751970573,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:29:33Z",
+      "id": 1000000113,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:29:33Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0113"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751970443,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:27:22Z",
+      "id": 1000000112,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:27:22Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0112"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751969787,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:16:27Z",
+      "id": 1000000111,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:16:27Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0111"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751969715,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:15:15Z",
+      "id": 1000000110,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:15:15Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0110"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751969529,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:12:09Z",
+      "id": 1000000109,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:12:09Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0109"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751969183,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:06:23Z",
+      "id": 1000000108,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:06:23Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0108"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751968990,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:03:10Z",
+      "id": 1000000107,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:03:10Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0107"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751968899,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T10:01:39Z",
+      "id": 1000000106,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T10:01:39Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0106"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751968681,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:58:00Z",
+      "id": 1000000105,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:58:00Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0105"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751968577,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:56:17Z",
+      "id": 1000000104,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:56:17Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0104"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751968387,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:53:06Z",
+      "id": 1000000103,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:53:06Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0103"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751968037,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:47:16Z",
+      "id": 1000000102,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:47:16Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0102"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751967946,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:45:45Z",
+      "id": 1000000101,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:45:45Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0101"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751967608,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:40:08Z",
+      "id": 1000000100,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:40:08Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0100"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751967253,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:34:12Z",
+      "id": 1000000099,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:34:12Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0099"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751967086,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:31:26Z",
+      "id": 1000000098,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:31:26Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0098"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751966455,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:20:55Z",
+      "id": 1000000097,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:20:55Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0097"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751966155,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:15:54Z",
+      "id": 1000000096,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:15:54Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0096"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751966087,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:14:47Z",
+      "id": 1000000095,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:14:47Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0095"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751965978,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T09:12:57Z",
+      "id": 1000000094,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T09:12:57Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0094"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751963425,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:30:24Z",
+      "id": 1000000093,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:30:24Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0093"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751963176,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:26:16Z",
+      "id": 1000000092,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:26:16Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0092"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751963028,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:23:47Z",
+      "id": 1000000091,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:23:47Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0091"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751962719,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:18:38Z",
+      "id": 1000000090,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:18:38Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0090"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751962405,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:13:24Z",
+      "id": 1000000089,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:13:24Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0089"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751962059,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:07:39Z",
+      "id": 1000000088,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:07:39Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0088"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751961947,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:05:46Z",
+      "id": 1000000087,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:05:46Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0087"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751961811,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:03:30Z",
+      "id": 1000000086,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:03:30Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0086"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751961706,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T08:01:45Z",
+      "id": 1000000085,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T08:01:45Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0085"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751961469,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:57:48Z",
+      "id": 1000000084,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:57:48Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0084"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751961336,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:55:35Z",
+      "id": 1000000083,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:55:35Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0083"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751961044,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:50:43Z",
+      "id": 1000000082,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:50:43Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0082"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751960934,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:48:53Z",
+      "id": 1000000081,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:48:53Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0081"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751960862,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:47:41Z",
+      "id": 1000000080,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:47:41Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0080"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751960725,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:45:25Z",
+      "id": 1000000079,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:45:25Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0079"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751960630,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:43:49Z",
+      "id": 1000000078,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:43:49Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0078"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751960506,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:41:46Z",
+      "id": 1000000077,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:41:46Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0077"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751960322,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:38:41Z",
+      "id": 1000000076,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:38:41Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0076"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751960252,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:37:31Z",
+      "id": 1000000075,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:37:31Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0075"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751960118,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:35:18Z",
+      "id": 1000000074,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:35:18Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0074"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751959897,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:31:37Z",
+      "id": 1000000073,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:31:37Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0073"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751959553,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:25:52Z",
+      "id": 1000000072,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:25:52Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0072"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751959277,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:21:16Z",
+      "id": 1000000071,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:21:16Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0071"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751959064,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:17:43Z",
+      "id": 1000000070,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:17:43Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0070"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751958898,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:14:57Z",
+      "id": 1000000069,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:14:57Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0069"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751958766,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:12:46Z",
+      "id": 1000000068,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:12:46Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0068"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751958597,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:09:57Z",
+      "id": 1000000067,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:09:57Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0067"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751958430,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:07:10Z",
+      "id": 1000000066,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:07:10Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0066"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751958222,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:03:42Z",
+      "id": 1000000065,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:03:42Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0065"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751958091,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T07:01:30Z",
+      "id": 1000000064,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T07:01:30Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0064"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751957950,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:59:09Z",
+      "id": 1000000063,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:59:09Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0063"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751957801,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:56:40Z",
+      "id": 1000000062,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:56:40Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0062"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751957622,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:53:42Z",
+      "id": 1000000061,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:53:42Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0061"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751957411,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:50:10Z",
+      "id": 1000000060,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:50:10Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0060"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751957278,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:47:58Z",
+      "id": 1000000059,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:47:58Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0059"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751957153,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:45:52Z",
+      "id": 1000000058,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:45:52Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0058"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751956979,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:42:58Z",
+      "id": 1000000057,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:42:58Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0057"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751956908,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:41:48Z",
+      "id": 1000000056,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:41:48Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0056"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751956693,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:38:13Z",
+      "id": 1000000055,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:38:13Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0055"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751956466,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:34:26Z",
+      "id": 1000000054,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:34:26Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0054"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751956309,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:31:49Z",
+      "id": 1000000053,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:31:49Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0053"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751956186,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:29:46Z",
+      "id": 1000000052,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:29:46Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0052"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751955948,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:25:47Z",
+      "id": 1000000051,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:25:47Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0051"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751955864,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:24:23Z",
+      "id": 1000000050,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:24:23Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0050"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751955322,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:15:22Z",
+      "id": 1000000049,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:15:22Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0049"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751955012,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:10:11Z",
+      "id": 1000000048,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:10:11Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0048"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751954787,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:06:26Z",
+      "id": 1000000047,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:06:26Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0047"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751954630,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T06:03:49Z",
+      "id": 1000000046,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T06:03:49Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0046"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751954144,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:55:44Z",
+      "id": 1000000045,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:55:44Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0045"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751954064,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:54:24Z",
+      "id": 1000000044,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:54:24Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0044"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751953685,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:48:05Z",
+      "id": 1000000043,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:48:05Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0043"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751953470,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:44:29Z",
+      "id": 1000000042,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:44:29Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0042"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751953128,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:38:47Z",
+      "id": 1000000041,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:38:47Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0041"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751953056,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:37:35Z",
+      "id": 1000000040,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:37:35Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0040"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751952937,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:35:36Z",
+      "id": 1000000039,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:35:36Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0039"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751952799,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:33:18Z",
+      "id": 1000000038,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:33:18Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0038"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751952707,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:31:46Z",
+      "id": 1000000037,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:31:46Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0037"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751951585,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T05:13:05Z",
+      "id": 1000000036,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T05:13:05Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0036"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751950710,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:58:30Z",
+      "id": 1000000035,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:58:30Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0035"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751950160,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:49:19Z",
+      "id": 1000000034,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:49:19Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0034"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751950085,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:48:04Z",
+      "id": 1000000033,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:48:04Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0033"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751949976,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:46:15Z",
+      "id": 1000000032,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:46:15Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0032"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751949813,
+      "type": "SOUND",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:43:32Z",
+      "id": 1000000031,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:43:32Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0031"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751949708,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:41:48Z",
+      "id": 1000000030,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:41:48Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0030"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751949629,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:40:28Z",
+      "id": 1000000029,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:40:28Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0029"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751949230,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:33:49Z",
+      "id": 1000000028,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:33:49Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0028"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751949094,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:31:33Z",
+      "id": 1000000027,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:31:33Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0027"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751948781,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:26:21Z",
+      "id": 1000000026,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:26:21Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0026"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751948591,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:23:10Z",
+      "id": 1000000025,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:23:10Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0025"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751948312,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:18:32Z",
+      "id": 1000000024,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:18:32Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0024"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751948134,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:15:34Z",
+      "id": 1000000023,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:15:34Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0023"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751947937,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:12:16Z",
+      "id": 1000000022,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:12:16Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0022"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751947555,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:05:55Z",
+      "id": 1000000021,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:05:55Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0021"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751947472,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:04:31Z",
+      "id": 1000000020,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:04:31Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0020"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751947377,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T04:02:57Z",
+      "id": 1000000019,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T04:02:57Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0019"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751946970,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:56:09Z",
+      "id": 1000000018,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:56:09Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0018"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751946688,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:51:28Z",
+      "id": 1000000017,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:51:28Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0017"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751946599,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:49:58Z",
+      "id": 1000000016,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:49:58Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0016"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751946486,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:48:06Z",
+      "id": 1000000015,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:48:06Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0015"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751946295,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:44:54Z",
+      "id": 1000000014,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:44:54Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0014"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751946142,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:42:21Z",
+      "id": 1000000013,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:42:21Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0013"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751946011,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:40:10Z",
+      "id": 1000000012,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:40:10Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0012"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751945874,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:37:53Z",
+      "id": 1000000011,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:37:53Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0011"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751945777,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:36:17Z",
+      "id": 1000000010,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:36:17Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0010"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751945569,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:32:48Z",
+      "id": 1000000009,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:32:48Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0009"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751945462,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:31:02Z",
+      "id": 1000000008,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:31:02Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0008"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751945142,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:25:41Z",
+      "id": 1000000007,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:25:41Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0007"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751944858,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:20:57Z",
+      "id": 1000000006,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:20:57Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0006"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751944715,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:18:35Z",
+      "id": 1000000005,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:18:35Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0005"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751944611,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T03:16:51Z",
+      "id": 1000000004,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T03:16:51Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0004"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751942666,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T02:44:26Z",
+      "id": 1000000003,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T02:44:26Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0003"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751942543,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T02:42:23Z",
+      "id": 1000000002,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T02:42:23Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0002"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    },
+    {
+      "baby_uid": "fixture-baby-001",
+      "time": 1751942454,
+      "type": "MOTION",
+      "read_at": null,
+      "updated_at": "2025-07-08T02:40:53Z",
+      "id": 1000000001,
+      "user_id": 900001,
+      "seen_at": "2025-07-09T12:01:56Z",
+      "dismissed_at": null,
+      "created_at": "2025-07-08T02:40:53Z",
+      "data": {
+        "event": {
+          "uid": "evt-fixture-0001"
+        },
+        "camera": {
+          "uid": "CAM-FIXTURE-001"
+        }
+      }
+    }
+  ]
+}

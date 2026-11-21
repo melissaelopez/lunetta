@@ -1,8 +1,10 @@
-# blAIr
+# Lunetta
 
-Better sleep scoring and AI insights for Nanit baby monitors.
+Calm, age-adjusted baby sleep scoring and AI insights for Nanit baby monitors.
 
-The official Nanit app often misses when a baby actually falls asleep or wakes for the day, and its sleep score doesn't account for what's normal at a given (adjusted) age. blAIr signs into your Nanit account, pulls the same sleep data, and re-scores it:
+> Forked from **blAIr** (MIT licensed, copyright Max Levitin). See [LICENSE](./LICENSE).
+
+The official Nanit app often misses when a baby actually falls asleep or wakes for the day, and its sleep score doesn't account for what's normal at a given (adjusted) age. Lunetta signs into your Nanit account, pulls the same sleep data, and re-scores it:
 
 - **Age-adjusted scoring** (duration, continuity, longest stretch, bedtime timing) with prematurity taken into account. Expected night wakes are free; only extra or unusually long ones cost points. A "why this score?" breakdown shows the math.
 - **Self-settled vs. parent visits.** Nanit's camera logs when a parent approaches the crib. Each night wake is labeled self-settled, parent visit, or taken out (you can correct it). Self-settled wakes never count as extra wakes, brief ones don't break the longest stretch, and the AI won't tell you to "wait before responding" to a wake nobody responded to.
@@ -11,8 +13,6 @@ The official Nanit app often misses when a baby actually falls asleep or wakes f
 - **AI insights** per night that reference your actual numbers, compare against recent nights, and read the camera thumbnails from that night. Choose Claude or OpenAI for insights, two-night comparison, schedule optimization, and video analysis.
 - **Baby profile** (rolls both ways, sleep sack, pacifier, notes) so the AI stops flagging things that are normal for your baby.
 - Trend charts, regression alerts, milestones, and cry-type classification from clip audio (Gemini).
-
-Live instance: https://blair-1077711142130.us-central1.run.app
 
 It uses Nanit's unofficial API (the same one the Home Assistant integrations use) and can break without warning if Nanit changes it. Not affiliated with Nanit.
 
@@ -40,7 +40,7 @@ Dockerfile  multi-stage build for Cloud Run (includes ffmpeg)
 
 ## Running locally
 
-Requirements: Node 22+. The default Firestore backend needs a Google Cloud project with a Firestore database named `blair` and application default credentials. For SQLite, use the Docker Compose setup below.
+Requirements: Node 22+. The default Firestore backend uses a Google Cloud project with a Cloud Firestore `(default)` database (or a custom database via `FIRESTORE_DATABASE_ID`) and application default credentials. For SQLite, use the Docker Compose setup below or set `STORAGE_BACKEND=sqlite` and `SQLITE_PATH=../data/lunetta.db` in `backend/.env`.
 
 ```bash
 cd backend && npm install
@@ -88,7 +88,7 @@ cd frontend && npm run dev     # http://localhost:3000 (proxies /api to 8080)
 
 ## Self-hosting with SQLite
 
-Docker Compose runs blAIr with SQLite and does not require a Google Cloud project. The default setup builds a local image for your host architecture. From the repository directory:
+Docker Compose runs Lunetta with SQLite and does not require a Google Cloud project. The default setup builds a local image for your host architecture. From the repository directory:
 
 ```bash
 cp .env.example .env
@@ -96,9 +96,9 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Open `http://YOUR_SERVER_IP:8080`. The app uses your Nanit login through your own server. Your AI keys stay in the container environment; Your configured AI provider handles text/image analysis, and Gemini handles optional audio analysis. API usage is billed to your accounts. The default daily limits are 40 calls per baby and 400 total, and can be changed in `.env`. Serve the app over HTTPS or a private VPN when accessing it beyond the server itself.
+Open `http://YOUR_SERVER_IP:8080`. The app uses your Nanit login through your own server. Your AI keys stay in the container environment; your configured AI provider handles text/image analysis, and Gemini handles optional audio analysis. API usage is billed to your accounts. The default daily limits are 40 calls per baby and 400 total, and can be changed in `.env`. Serve the app over HTTPS or a private VPN when accessing it beyond the server itself.
 
-The database is `/data/blair.db` in the container, bind-mounted to `./data` on the host. Run one blAIr container per SQLite database. To update a local build, pull the latest source and run `docker compose up -d --build`. To back up, stop the container with `docker compose stop`, copy the entire `./data` directory to your backup location, then run `docker compose start`. To restore, stop the container, replace `./data` with your saved copy, and start it again. Stopping before copying keeps the SQLite WAL files consistent.
+The database is `/data/lunetta.db` in the container, bind-mounted to `./data` on the host. Run one Lunetta container per SQLite database. To update a local build, pull the latest source and run `docker compose up -d --build`. To back up, stop the container with `docker compose stop`, copy the entire `./data` directory to your backup location, then run `docker compose start`. To restore, stop the container, replace `./data` with your saved copy, and start it again. Stopping before copying keeps the SQLite WAL files consistent.
 
 To use a published image instead, set `BLAIR_IMAGE=ghcr.io/<owner>/<repo>:latest` in `.env`, replacing `<owner>/<repo>` with the repository that publishes it, then run `docker compose pull && docker compose up -d --no-build`. Repeat that command to update. Use a branch, `sha-...`, or release tag to select a specific build. Published images currently target Linux amd64; ARM hosts should use the local build.
 
@@ -113,7 +113,7 @@ Pushes to `main` and `v*` version tags publish images to `ghcr.io/<owner>/<repo>
 ## Deploying to Cloud Run
 
 ```bash
-gcloud run deploy blair --source . --project YOUR_PROJECT --region us-central1
+gcloud run deploy lunetta --source . --project YOUR_PROJECT --region us-central1
 ```
 
 Set the environment variables above on the service (they persist across deploys). Firestore is reached through the service's default credentials.

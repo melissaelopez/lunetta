@@ -6,7 +6,7 @@ import { store } from './store.js';
  * their IP + user agent that rotates daily, so nothing identifies a person
  * across days and nothing is stored in the browser.
  */
-const SALT = process.env.STATS_SALT || 'blair';
+const SALT = process.env.STATS_SALT || 'lunetta';
 
 function day(): string {
   return new Date().toISOString().slice(0, 10);

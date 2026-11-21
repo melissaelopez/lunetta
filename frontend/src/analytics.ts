@@ -3,16 +3,16 @@
  * kept in localStorage; nothing from GA runs until it is "granted".
  */
 declare global {
-  interface Window { __BLAIR_CONFIG__?: { disableAnalytics: boolean } }
+  interface Window { __LUNETTA_CONFIG__?: { disableAnalytics: boolean } }
 }
 
 // Keep the original hosted deployment working without a build configuration.
 // Development and self-hosted containers can disable tracking at runtime.
-export const GA_MEASUREMENT_ID = import.meta.env.DEV || window.__BLAIR_CONFIG__?.disableAnalytics
+export const GA_MEASUREMENT_ID = import.meta.env.DEV || window.__LUNETTA_CONFIG__?.disableAnalytics
   ? ''
   : (import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-3FQ78N91NB');
 
-const KEY = 'blair_analytics';
+const KEY = 'lunetta_analytics';
 type Choice = 'granted' | 'denied';
 
 declare global {

@@ -5,7 +5,7 @@ import path from 'path';
 import { config } from '../config.js';
 
 const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
-const AUDIO_DIR = '/tmp/blair-audio';
+const AUDIO_DIR = '/tmp/lunetta-audio';
 
 export interface AudioAnalysis {
   vocalization_detected: boolean;

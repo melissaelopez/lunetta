@@ -1,7 +1,7 @@
 {
-  "name": "blair-backend",
+  "name": "lunetta-backend",
   "version": "1.0.0",
-  "description": "blAIr Nanit analytics backend",
+  "description": "Lunetta sleep analytics backend",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",

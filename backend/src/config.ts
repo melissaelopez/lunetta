@@ -56,7 +56,8 @@ export const config = {
     serviceVersion: '3.52.0 (882)',
   },
   firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID,
+    projectId: process.env.FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT,
+    databaseId: process.env.FIRESTORE_DATABASE_ID || '(default)',
   },
   // One Claude/OpenAI provider/model powers every text + image feature. Gemini remains separate for audio.
   ai: {
@@ -88,6 +89,6 @@ export const config = {
   feedback: {
     resendApiKey: process.env.RESEND_API_KEY || '',
     toEmail: process.env.FEEDBACK_TO_EMAIL || '',
-    fromEmail: process.env.FEEDBACK_FROM_EMAIL || 'blAIr <onboarding@resend.dev>',
+    fromEmail: process.env.FEEDBACK_FROM_EMAIL || 'Lunetta <onboarding@resend.dev>',
   },
 };

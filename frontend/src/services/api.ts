@@ -13,19 +13,19 @@ import type {
 const BASE = '/api';
 
 function getToken(): string | null {
-  return localStorage.getItem('blair_access_token');
+  return localStorage.getItem('lunetta_access_token');
 }
 
 function setTokens(tokens: NanitTokens) {
-  localStorage.setItem('blair_access_token', tokens.access_token);
-  localStorage.setItem('blair_token', tokens.token);
-  localStorage.setItem('blair_refresh_token', tokens.refresh_token);
+  localStorage.setItem('lunetta_access_token', tokens.access_token);
+  localStorage.setItem('lunetta_token', tokens.token);
+  localStorage.setItem('lunetta_refresh_token', tokens.refresh_token);
 }
 
 function clearTokens() {
-  localStorage.removeItem('blair_access_token');
-  localStorage.removeItem('blair_token');
-  localStorage.removeItem('blair_refresh_token');
+  localStorage.removeItem('lunetta_access_token');
+  localStorage.removeItem('lunetta_token');
+  localStorage.removeItem('lunetta_refresh_token');
 }
 
 let _authFailureHandled = false;
@@ -58,7 +58,7 @@ function refreshAccessToken(): Promise<string> {
   if (_refreshPromise) return _refreshPromise;
 
   _refreshPromise = (async () => {
-    const refreshToken = localStorage.getItem('blair_refresh_token');
+    const refreshToken = localStorage.getItem('lunetta_refresh_token');
     const accessToken = getToken();
     if (!refreshToken || !accessToken) {
       forceLogout();

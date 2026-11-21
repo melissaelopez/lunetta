@@ -23,7 +23,7 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
       <div className="w-full max-w-sm">
         <h1 className="mb-8 text-center text-3xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
-          blAIr
+          Lunetta
         </h1>
 
         {!mfaChallenge ? (
@@ -90,10 +90,10 @@ export function LoginPage() {
 
         <div className="mt-8 space-y-2 text-center text-xs text-slate-500 dark:text-slate-400">
           <p>
-            Better sleep scores and AI insights for your Nanit. Your email and password go straight to Nanit's API to get a session token; the token stays in this browser and nothing about your account is stored on the server.
+            Calm, age-adjusted sleep scores and AI insights in Lunetta. Your email and password go straight to Nanit's API to get a session token; the token stays in this browser and nothing about your account is stored on the server.
           </p>
           <p>
-            Brand new and rough around the edges.{' '}
+            Have an idea or spotted an issue?{' '}
             <button type="button" onClick={() => setFeedbackOpen(true)} className="text-indigo-600 underline-offset-2 hover:underline dark:text-indigo-400">
               Report a bug or send feedback
             </button>

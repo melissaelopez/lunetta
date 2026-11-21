@@ -25,9 +25,9 @@ router.get('/stats', requireAdmin, async (req, res) => {
     );
     if (req.query.format === 'json') { res.json({ days, totals, rows }); return; }
     const tr = (r: any) => `<tr><td>${r.day}</td><td>${r.page_views}</td><td>${r.unique_visitors}</td><td>${r.logins}</td><td>${r.active_babies}</td></tr>`;
-    res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>blAIr stats</title>
+    res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lunetta stats</title>
 <style>body{font:15px system-ui;margin:24px;color:#111}table{border-collapse:collapse;width:100%;max-width:640px}td,th{padding:8px 10px;border-bottom:1px solid #ddd;text-align:right}td:first-child,th:first-child{text-align:left}th{font-size:12px;color:#666;text-transform:uppercase}tfoot td{font-weight:600}</style>
-<h2>blAIr usage, last ${days} days</h2>
+<h2>Lunetta usage, last ${days} days</h2>
 <table><thead><tr><th>Day (UTC)</th><th>Page views</th><th>Visitors</th><th>Logins</th><th>Active babies</th></tr></thead>
 <tbody>${rows.map(tr).join('') || '<tr><td colspan=5>No data yet</td></tr>'}</tbody>
 <tfoot>${tr({ day: 'Total', ...totals })}</tfoot></table>
@@ -43,7 +43,7 @@ router.get('/feedback', requireAdmin, async (req, res) => {
     const items = await store.getFeedback(50);
     if (req.query.format === 'json') { res.json({ items }); return; }
     const esc = (s: unknown) => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
-    res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>blAIr feedback</title>
+    res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lunetta feedback</title>
 <style>body{font:15px system-ui;margin:24px;color:#111;max-width:720px}article{border-bottom:1px solid #ddd;padding:12px 0}small{color:#666}</style>
 <h2>Feedback (${items.length})</h2>
 ${items.map((f: any) => `<article><small>${new Date(f.created_at).toLocaleString()} · ${esc(f.kind)} · ${esc(f.email || 'no email')} · ${esc(f.page)}</small><p>${esc(f.message)}</p></article>`).join('') || '<p>Nothing yet.</p>'}`);

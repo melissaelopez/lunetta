@@ -1,6 +1,6 @@
 services:
-  blair:
-    image: ${BLAIR_IMAGE:-blair:local}
+  lunetta:
+    image: ${BLAIR_IMAGE:-lunetta:local}
     build: .
     restart: unless-stopped
     ports:

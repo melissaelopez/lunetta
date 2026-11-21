@@ -4,19 +4,19 @@ import { useState, useEffect } from 'react';
 import { logout } from '../../services/api';
 
 export function Nav() {
-  const [dark, setDark] = useState(() => localStorage.getItem('blair_theme') === 'dark');
+  const [dark, setDark] = useState(() => localStorage.getItem('lunetta_theme') === 'dark');
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('blair_theme', dark ? 'dark' : 'light');
+    localStorage.setItem('lunetta_theme', dark ? 'dark' : 'light');
   }, [dark]);
 
   return (
     <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <a href="/" className="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
-          blAIr
+          Lunetta
         </a>
         <div className="flex items-center gap-3">
           <button

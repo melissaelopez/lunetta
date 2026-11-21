@@ -6,8 +6,8 @@ import { join } from 'node:path';
 import { createSqliteStore } from '../src/services/sqlite.js';
 
 function fixture() {
-  const dir = mkdtempSync(join(tmpdir(), 'blair-sqlite-test-'));
-  const path = join(dir, 'blair.db');
+  const dir = mkdtempSync(join(tmpdir(), 'lunetta-sqlite-test-'));
+  const path = join(dir, 'lunetta.db');
   const storage = createSqliteStore(path);
   return { path, dir, storage, cleanup: () => { storage.close(); rmSync(dir, { recursive: true, force: true }); } };
 }

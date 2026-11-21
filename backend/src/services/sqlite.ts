@@ -15,7 +15,7 @@ export function createSqliteStore(path: string): Storage & { close(): void } {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   const version = db.pragma('user_version', { simple: true }) as number;
-  if (version > 1) throw new Error(`SQLite database schema ${version} is newer than this blAIr build`);
+  if (version > 1) throw new Error(`SQLite database schema ${version} is newer than this Lunetta build`);
   if (version === 0) {
     db.exec(`
       CREATE TABLE IF NOT EXISTS documents (kind TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY (kind, key));
@@ -95,4 +95,6 @@ export function createSqliteStore(path: string): Storage & { close(): void } {
   };
 }
 
-export const sqliteStore = createSqliteStore(process.env.NODE_ENV === 'test' ? ':memory:' : '/data/blair.db');
+export const sqliteStore = createSqliteStore(
+  process.env.NODE_ENV === 'test' ? ':memory:' : (process.env.SQLITE_PATH || '/data/lunetta.db'),
+);

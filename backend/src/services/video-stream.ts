@@ -4,7 +4,7 @@ import path from 'path';
 import { config } from '../config.js';
 import * as nanit from './nanit-client.js';
 
-const CLIPS_DIR = '/tmp/blair-clips';
+const CLIPS_DIR = '/tmp/lunetta-clips';
 
 /**
  * Get the RTMPS stream URL for a baby's camera.

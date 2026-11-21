@@ -94,7 +94,7 @@ export async function analyzeFromThumbnail(
  * ffmpeg reads the URL directly, so the clip is never fully buffered in memory.
  */
 async function extractFrames(clipUrl: string, maxFrames: number = 8): Promise<ImageInput[]> {
-  const dir = await mkdtemp(path.join(tmpdir(), 'blair-frames-'));
+  const dir = await mkdtemp(path.join(tmpdir(), 'lunetta-frames-'));
   try {
     // Nanit event clips are short (typically 10-30s); 1 frame every 3s gives good coverage
     // and -frames:v caps the total for longer clips.

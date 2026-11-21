@@ -34,7 +34,7 @@ const MARK_CLASS: Record<RowMark['kind'], string> = {
   visit: 'bg-amber-500',
 };
 
-const CHART_OPEN_KEY = 'blair_day_activity_chart_open';
+const CHART_OPEN_KEY = 'lunetta_day_activity_chart_open';
 
 function readChartOpen(): boolean {
   try {

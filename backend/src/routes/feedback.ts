@@ -61,7 +61,7 @@ router.post('/', async (req, res) => {
     };
     const feedbackId = await store.addFeedback(entry);
 
-    const subject = `[blAIr ${entry.kind}] ${entry.message.slice(0, 60).replace(/\s+/g, ' ')}`;
+    const subject = `[Lunetta ${entry.kind}] ${entry.message.slice(0, 60).replace(/\s+/g, ' ')}`;
     const body = `${entry.message}\n\n—\nFrom: ${entry.email ?? 'not provided'}\nPage: ${entry.page ?? '?'}\nUA: ${entry.user_agent}\nFeedback: ${feedbackId}`;
     const emailed = await emailFeedback(subject, body, entry.email ?? undefined).catch(err => {
       console.error(`[feedback] email failed: ${err.message}`);

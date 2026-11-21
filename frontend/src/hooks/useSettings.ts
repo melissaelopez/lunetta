@@ -23,7 +23,7 @@ export interface SleepSettings {
   notes: string;            // free text the AI should know
 }
 
-const STORAGE_KEY = 'blair_sleep_settings';
+const STORAGE_KEY = 'lunetta_sleep_settings';
 
 export const defaultSettings: SleepSettings = {
   babyName: '',

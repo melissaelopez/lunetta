@@ -20,14 +20,14 @@ app.use(express.json());
 
 // Health check
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'blair-api' });
+  res.json({ status: 'ok', service: 'lunetta-api' });
 });
 
 // Loaded before the frontend bundle so a container setting can disable GA
 // without rebuilding the static assets. This endpoint exposes no secrets.
 app.get('/api/runtime-config.js', (_req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.type('application/javascript').send(`window.__BLAIR_CONFIG__={disableAnalytics:${config.analyticsDisabled}};`);
+  res.type('application/javascript').send(`window.__LUNETTA_CONFIG__={disableAnalytics:${config.analyticsDisabled}};`);
 });
 
 // Routes
@@ -64,5 +64,5 @@ app.get('*', (_req, res) => {
 });
 
 app.listen(config.port, () => {
-  console.log(`blAIr API running on port ${config.port}`);
+  console.log(`Lunetta API running on port ${config.port}`);
 });

@@ -8,12 +8,14 @@ import type { Storage, FeedbackEntry, BabySettings, CachedInsightValue } from '.
 import type { DayStats } from './stats.js';
 
 // Initialize Firebase Admin with default credentials (works on Cloud Run automatically).
-// Project comes from FIREBASE_PROJECT_ID; if unset, the SDK infers it from the environment.
+// Project comes from FIREBASE_PROJECT_ID or GCLOUD_PROJECT; if unset, the SDK infers it from the environment.
 if (getApps().length === 0) {
   initializeApp(config.firebase.projectId ? { projectId: config.firebase.projectId } : undefined);
 }
 
-export const db = getFirestore(undefined as any, 'blair');
+export const db = config.firebase.databaseId && config.firebase.databaseId !== '(default)'
+  ? getFirestore(undefined as any, config.firebase.databaseId)
+  : getFirestore();
 
 // ===== SLEEP ANNOTATIONS =====
 

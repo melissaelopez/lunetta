@@ -15,8 +15,8 @@ Object.defineProperty(globalThis, 'window', {
 });
 
 function seedTokens() {
-  values.set('blair_access_token', 'old-access');
-  values.set('blair_refresh_token', 'old-refresh');
+  values.set('lunetta_access_token', 'old-access');
+  values.set('lunetta_refresh_token', 'old-refresh');
 }
 
 test('simultaneous expired requests use one rotating refresh token', async () => {
@@ -39,8 +39,8 @@ test('simultaneous expired requests use one rotating refresh token', async () =>
 
   await Promise.all([getBabies(), getBabies(), getBabies()]);
   assert.equal(refreshes, 1);
-  assert.equal(values.get('blair_access_token'), 'new-access');
-  assert.equal(values.get('blair_refresh_token'), 'new-refresh');
+  assert.equal(values.get('lunetta_access_token'), 'new-access');
+  assert.equal(values.get('lunetta_refresh_token'), 'new-refresh');
 });
 
 test('temporary refresh failures retain tokens for a later retry', async () => {
@@ -50,8 +50,8 @@ test('temporary refresh failures retain tokens for a later retry', async () => {
     : new Response(null, { status: 401 });
 
   await assert.rejects(getBabies(), /Could not refresh session/);
-  assert.equal(values.get('blair_access_token'), 'old-access');
-  assert.equal(values.get('blair_refresh_token'), 'old-refresh');
+  assert.equal(values.get('lunetta_access_token'), 'old-access');
+  assert.equal(values.get('lunetta_refresh_token'), 'old-refresh');
 });
 
 test('rejected refresh token clears the session', async () => {
@@ -61,6 +61,6 @@ test('rejected refresh token clears the session', async () => {
     : new Response(null, { status: 401 });
 
   await assert.rejects(getBabies(), /Session expired/);
-  assert.equal(values.has('blair_access_token'), false);
-  assert.equal(values.has('blair_refresh_token'), false);
+  assert.equal(values.has('lunetta_access_token'), false);
+  assert.equal(values.has('lunetta_refresh_token'), false);
 });
