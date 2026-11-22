@@ -13,7 +13,7 @@ export function Nav() {
   }, [dark]);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
+    <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-indigo-900/50 dark:bg-[#0e102b]/85">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <a href="/" className="text-xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
           Lunetta

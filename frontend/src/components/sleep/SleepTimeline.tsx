@@ -52,11 +52,11 @@ function getClipUrl(e: TimelineVideoEvent): string | null {
 }
 
 const WAKE_STYLE: Record<WakeResponse, { bar: string; dot: string; label: string }> = {
-  self_settled: { bar: 'bg-teal-500', dot: 'bg-teal-500', label: 'Self-settled' },
-  parent_visit: { bar: 'bg-amber-500', dot: 'bg-amber-500', label: 'Parent went in' },
-  taken_out: { bar: 'bg-rose-600', dot: 'bg-rose-600', label: 'Taken out' },
-  asleep: { bar: 'bg-indigo-400/85 dark:bg-indigo-500/80 ring-1 ring-inset ring-white/40', dot: 'bg-indigo-400 dark:bg-indigo-500/80', label: 'Baby asleep (corrected)' },
-  unknown: { bar: 'bg-slate-400 dark:bg-slate-500', dot: 'bg-slate-400 dark:bg-slate-500', label: 'Awake (no visit data)' },
+  self_settled: { bar: 'bg-teal-400/85 dark:bg-teal-400/65', dot: 'bg-teal-400/90 dark:bg-teal-400/75', label: 'Self-settled' },
+  parent_visit: { bar: 'bg-amber-300/95 dark:bg-amber-400/70', dot: 'bg-amber-300 dark:bg-amber-400/80', label: 'Parent went in' },
+  taken_out: { bar: 'bg-rose-400/90 dark:bg-rose-400/70', dot: 'bg-rose-400/90 dark:bg-rose-400/75', label: 'Taken out' },
+  asleep: { bar: 'bg-indigo-300/90 dark:bg-indigo-300/55 ring-1 ring-inset ring-white/35', dot: 'bg-indigo-300 dark:bg-indigo-300/65', label: 'Baby asleep (corrected)' },
+  unknown: { bar: 'bg-slate-300 dark:bg-slate-500/75', dot: 'bg-slate-300 dark:bg-slate-500/80', label: 'Awake (no visit data)' },
 };
 
 const EVENT_BADGE: Record<string, string> = {
@@ -272,11 +272,11 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
             className="absolute top-0 flex h-3 w-4 -translate-x-1/2 items-end justify-center"
             style={{ left: `${c.left}%` }}
           >
-            <span className="block h-0 w-0 border-x-[5px] border-t-[7px] border-x-transparent border-t-amber-500" />
+            <span className="block h-0 w-0 border-x-[5px] border-t-[7px] border-x-transparent border-t-amber-400/90 dark:border-t-amber-300/80" />
           </button>
         ))}
       </div>
-      <div className="relative h-10 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-700">
+      <div className="relative h-10 overflow-hidden rounded-lg bg-slate-100 dark:bg-[#0e102b]">
         {bars.map(bar => (
           <button
             key={bar.id}
@@ -285,7 +285,7 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
             title={bar.label}
             onClick={() => selectItem(bar.id)}
             className={`absolute top-0 h-full ${
-              bar.kind === 'sleep' ? 'bg-indigo-500 dark:bg-indigo-600' : WAKE_STYLE[bar.wake!.response].bar
+              bar.kind === 'sleep' ? 'bg-indigo-400/90 dark:bg-indigo-400/75' : WAKE_STYLE[bar.wake!.response].bar
             } ${selected === bar.id ? 'ring-2 ring-inset ring-white/70' : ''}`}
             style={{ left: `${bar.left}%`, width: `${Math.max(bar.width, 0.6)}%` }}
           />
@@ -296,7 +296,7 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
         <div className="relative mt-1 h-7">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute top-0 h-2 rounded-b border-x-2 border-b-2 border-teal-500/80 transition-all duration-300 dark:border-teal-400/80"
+            className="pointer-events-none absolute top-0 h-2 rounded-b border-x-2 border-b-2 border-teal-400/75 transition-all duration-300 dark:border-teal-300/60"
             style={{ left: `${longestStretch.left}%`, width: `${Math.max(longestStretch.width, 1)}%` }}
           />
           <button
@@ -306,8 +306,8 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
             onClick={() => selectItem('longest-stretch')}
             className={`absolute top-2.5 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium transition-all duration-300 ${
               selected === 'longest-stretch'
-                ? 'bg-teal-600 text-white dark:bg-teal-500'
-                : 'bg-teal-50 text-teal-700 hover:bg-teal-100 dark:bg-teal-950/60 dark:text-teal-300 dark:hover:bg-teal-900/60'
+                ? 'bg-teal-500 text-white dark:bg-teal-400 dark:text-slate-950'
+                : 'bg-teal-50/90 text-teal-700 hover:bg-teal-100 dark:bg-teal-400/15 dark:text-teal-200 dark:hover:bg-teal-400/25'
             } ${longestStretch.center < 18 ? '' : longestStretch.center > 82 ? '' : '-translate-x-1/2'}`}
             style={
               longestStretch.center < 18
@@ -334,7 +334,7 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
         <div className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-indigo-500 dark:bg-indigo-600" />
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-indigo-400/90 dark:bg-indigo-400/75" />
           <span className="text-xs text-slate-500 dark:text-slate-400">Asleep</span>
         </div>
         {(['self_settled', 'parent_visit', 'taken_out', 'asleep', 'unknown'] as const).filter(r => used.has(r)).map(r => (
@@ -345,12 +345,12 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
         ))}
         {checkIns.length > 0 && (
           <div className="flex items-center gap-1.5">
-            <span className="block h-0 w-0 border-x-[5px] border-t-[7px] border-x-transparent border-t-amber-500" />
+            <span className="block h-0 w-0 border-x-[5px] border-t-[7px] border-x-transparent border-t-amber-400/90 dark:border-t-amber-300/80" />
             <span className="text-xs text-slate-500 dark:text-slate-400">Check-in while asleep</span>
           </div>
         )}
       </div>
-      <div className="mt-2 space-y-2.5 rounded-lg bg-slate-50 px-3 py-2.5 dark:bg-slate-900/50">
+      <div className="mt-2 space-y-2.5 rounded-lg bg-slate-50 px-3 py-2.5 dark:bg-[#0e102b]/80">
         <p className="text-xs text-slate-600 dark:text-slate-300">
           {selectedBar
             ? selectedBar.label

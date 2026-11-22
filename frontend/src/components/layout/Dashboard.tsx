@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Settings, Moon, Clock, Sparkles, TrendingUp, Video } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Settings, Moon, Clock, Sparkles, TrendingUp, Video, Loader2, History } from 'lucide-react';
 import { DateTime } from 'luxon';
 import { Nav } from './Nav';
 import { SettingsPanel } from './SettingsPanel';
@@ -22,8 +22,8 @@ import { NightComparisonCard } from '../sleep/NightComparisonCard';
 import { EventsCard } from '../sensors/EventsCard';
 import { CareCard } from '../care/CareCard';
 import * as api from '../../services/api';
-import { formatAge, yesterdayStr, dayStart, dayEnd, todayStr } from '../../utils/date';
-import { useSettings, nightWindow, adjustedAgeMonths } from '../../hooks/useSettings';
+import { formatAge, yesterdayStr, dayStart, dayEnd } from '../../utils/date';
+import { useSettings, nightWindow, adjustedAgeMonths, activeNightDate } from '../../hooks/useSettings';
 import type { Baby, CalendarEvent, NanitMessage, ScoredNight } from '../../types';
 
 export function Dashboard() {
@@ -36,18 +36,21 @@ export function Dashboard() {
   const [allTypes, setAllTypes] = useState<string[]>([]);
   const [messages, setMessages] = useState<NanitMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastNightDate, setLastNightDate] = useState<string | null>(null);
+  const [findingLastNight, setFindingLastNight] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyTab, setHistoryTab] = useState('timeline');
-  const [tonightTab, setTonightTab] = useState('analysis');
+  const [tonightTab, setTonightTab] = useState('timeline');
+  const [liveScore, setLiveScore] = useState<ScoredNight | null>(null);
   const { settings, setSettings } = useSettings(baby?.uid);
-  const nw = nightWindow(date, settings);
 
-  // Tonight's window: from bedtimeHour today to wakeHour+4 tomorrow
-  const tonightNw = nightWindow(todayStr(), settings);
-
-  // The view is derived from the date: today = Tonight (night in progress), past = History
-  const today = todayStr();
-  const isTonight = date === today;
+  // Determine which night (if any) is currently in progress right now.
+  // Between midnight and wakeHour, the in-progress night is yesterday's date (e.g. at 4 AM on Nov 22, it's Night of Nov 21).
+  const currentLiveNight = activeNightDate(settings);
+  const maxDate = currentLiveNight ?? yesterdayStr();
+  const effectiveDate = date > maxDate ? maxDate : date;
+  const nw = nightWindow(effectiveDate, settings);
+  const isNightInProgress = currentLiveNight !== null && effectiveDate === currentLiveNight;
 
   // Load baby on mount
   useEffect(() => {
@@ -56,20 +59,50 @@ export function Dashboard() {
     }).catch(console.error);
   }, []);
 
-  // Load history data when baby, date, or settings change (skip for tonight — that card self-fetches)
+  // Discover the most recent completed night that actually has sleep data (excluding any live night in progress)
+  const fallbackLastNight = currentLiveNight
+    ? DateTime.fromISO(currentLiveNight).minus({ days: 1 }).toFormat('yyyy-MM-dd')
+    : yesterdayStr();
+
+  const resolveLastNightWithData = useCallback(async (b: Baby): Promise<string> => {
+    try {
+      const recent = await api.getSleepTrend(b.uid, b.birthdate, 14, settings.bedtimeHour, settings.wakeHour, settings.prematureWeeks);
+      for (let i = recent.length - 1; i >= 0; i--) {
+        if (recent[i].score !== null && recent[i].date !== currentLiveNight) return recent[i].date;
+      }
+    } catch {
+      // Fall back if trend lookup fails
+    }
+    return fallbackLastNight;
+  }, [settings.bedtimeHour, settings.wakeHour, settings.prematureWeeks, currentLiveNight, fallbackLastNight]);
+
   useEffect(() => {
-    if (!baby || isTonight) return;
+    if (!baby) return;
+    let cancelled = false;
+    resolveLastNightWithData(baby).then(found => {
+      if (!cancelled) setLastNightDate(found);
+    });
+    return () => { cancelled = true; };
+  }, [baby, resolveLastNightWithData]);
+
+  // Load history data when baby, date, or settings change (skip for in-progress night — NightInProgressCard self-fetches)
+  useEffect(() => {
+    if (!baby || isNightInProgress) return;
     setLoading(true);
 
-    const start = dayStart(date);
-    const end = dayEnd(date);
+    const start = dayStart(effectiveDate);
+    const end = dayEnd(effectiveDate);
 
     setScoreError(null);
 
     Promise.all([
       api.getSleepScore(baby.uid, nw.start, nw.end, baby.birthdate, settings.prematureWeeks, settings.bedtimeHour, settings.normalWakeMinutes)
         .then(scores => {
-          setSleepScore(scores.find(s => s.is_main) ?? scores[0] ?? null);
+          const main = scores.find(s => s.is_main) ?? scores[0] ?? null;
+          setSleepScore(main);
+          if (main && effectiveDate !== currentLiveNight && (!lastNightDate || effectiveDate > lastNightDate) && effectiveDate <= maxDate) {
+            setLastNightDate(effectiveDate);
+          }
         })
         .catch(err => {
           setSleepScore(null);
@@ -84,29 +117,65 @@ export function Dashboard() {
       const filtered = msgs.filter((m: NanitMessage) => m.time >= start && m.time <= end);
       setMessages(filtered);
     }).finally(() => setLoading(false));
-  }, [baby, date, settings, isTonight, refreshKey]);
+  }, [baby, effectiveDate, settings, isNightInProgress, refreshKey]);
 
   const refetch = () => setRefreshKey(k => k + 1);
 
   const prevDay = () => {
-    setDate(DateTime.fromISO(date).minus({ days: 1 }).toFormat('yyyy-MM-dd'));
+    setDate(DateTime.fromISO(effectiveDate).minus({ days: 1 }).toFormat('yyyy-MM-dd'));
   };
 
   const nextDay = () => {
-    const next = DateTime.fromISO(date).plus({ days: 1 });
-    // Allow navigating up to today (which auto-shows Tonight view)
-    if (next.toFormat('yyyy-MM-dd') <= today) {
+    const next = DateTime.fromISO(effectiveDate).plus({ days: 1 });
+    if (next.toFormat('yyyy-MM-dd') <= maxDate) {
       setDate(next.toFormat('yyyy-MM-dd'));
     }
   };
 
-  const switchToTonight = () => setDate(today);
-  const switchToHistory = () => setDate(yesterdayStr());
+  const goToLastNight = async () => {
+    if (lastNightDate) {
+      setDate(lastNightDate);
+      return;
+    }
+    if (!baby) {
+      setDate(fallbackLastNight);
+      return;
+    }
+    setFindingLastNight(true);
+    try {
+      const found = await resolveLastNightWithData(baby);
+      setLastNightDate(found);
+      setDate(found);
+    } finally {
+      setFindingLastNight(false);
+    }
+  };
 
-  const isLatest = date >= today;
-  const displayDate = DateTime.fromISO(date).toFormat('EEE, MMM d');
+  const goToTonight = () => {
+    if (currentLiveNight) setDate(currentLiveNight);
+  };
+
+  const bedtimeLabel = settings.bedtimeHour === 0
+    ? '12:00 AM'
+    : settings.bedtimeHour === 12
+      ? '12:00 PM'
+      : settings.bedtimeHour < 12
+        ? `${settings.bedtimeHour}:00 AM`
+        : `${settings.bedtimeHour - 12}:00 PM`;
+
+  const isOnLastNight = effectiveDate === (lastNightDate ?? fallbackLastNight);
+  const isLatest = effectiveDate >= maxDate;
+  const displayDate = DateTime.fromISO(effectiveDate).toFormat('EEE, MMM d');
 
   const tonightTabs: CarouselTab[] = [
+    {
+      id: 'timeline',
+      label: 'Timeline',
+      icon: <Clock size={14} />,
+      content: (
+        <SleepTimeline sleepScore={liveScore} baby={baby} onSaved={refetch} />
+      ),
+    },
     {
       id: 'analysis',
       label: 'Analysis',
@@ -143,9 +212,9 @@ export function Dashboard() {
         <VideoEventsCard
           baby={baby}
           prematureWeeks={settings.prematureWeeks}
-          nightStart={tonightNw.start}
-          nightEnd={tonightNw.end}
-          nightLabel="Tonight"
+          nightStart={nw.start}
+          nightEnd={nw.end}
+          nightLabel={displayDate}
         />
       ),
     },
@@ -226,7 +295,7 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0d24]">
       <Nav />
       <main className="mx-auto max-w-5xl px-4 py-6">
         {/* Header */}
@@ -256,11 +325,28 @@ export function Dashboard() {
                 <Settings size={18} />
               </button>
               <button
-                onClick={isTonight ? switchToHistory : switchToTonight}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
-                  isTonight
+                type="button"
+                onClick={goToLastNight}
+                disabled={findingLastNight}
+                title={lastNightDate ? `Jump to most recent completed night with data (${DateTime.fromISO(lastNightDate).toFormat('EEE, MMM d')})` : 'Jump to most recent completed night with data'}
+                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition disabled:opacity-60 ${
+                  isOnLastNight
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                    : 'bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-indigo-950/70 dark:text-indigo-200 dark:hover:bg-indigo-900/70'
+                }`}
+              >
+                {findingLastNight ? <Loader2 size={14} className="animate-spin" /> : <History size={14} />}
+                Last Night
+              </button>
+              <button
+                type="button"
+                onClick={goToTonight}
+                disabled={!currentLiveNight}
+                title={currentLiveNight ? `View night in progress (${DateTime.fromISO(currentLiveNight).toFormat('EEE, MMM d')})` : `No night in progress yet (starts at ${bedtimeLabel})`}
+                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                  isNightInProgress
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-indigo-950/70 dark:text-indigo-200 dark:hover:bg-indigo-900/70'
                 }`}
               >
                 <Moon size={14} />
@@ -275,7 +361,7 @@ export function Dashboard() {
             </button>
             <span className="min-w-[160px] text-center text-sm font-medium text-slate-700 dark:text-slate-300">
               Night of {displayDate}
-              {isTonight && <span className="ml-1.5 rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] text-indigo-400">LIVE</span>}
+              {isNightInProgress && <span className="ml-1.5 rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] text-indigo-400">LIVE</span>}
             </span>
             <button
               onClick={nextDay}
@@ -295,18 +381,20 @@ export function Dashboard() {
           wakeHour={settings.wakeHour}
         />
 
-        {isTonight ? (
-          /* TONIGHT MODE */
+        {isNightInProgress ? (
+          /* LIVE NIGHT IN PROGRESS MODE */
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="col-span-full lg:col-span-2">
               <NightInProgressCard
                 baby={baby}
-                nightStart={tonightNw.start}
-                nightEnd={tonightNw.end}
+                nightStart={nw.start}
+                nightEnd={nw.end}
                 prematureWeeks={settings.prematureWeeks}
                 bedtimeHour={settings.bedtimeHour}
                 wakeHour={settings.wakeHour}
                 normalWakeMinutes={settings.normalWakeMinutes}
+                refreshKey={refreshKey}
+                onScoreLoaded={setLiveScore}
               />
             </div>
             <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
@@ -320,9 +408,17 @@ export function Dashboard() {
                 <ErrorState title="Couldn't load this night from Nanit" message={scoreError} onRetry={refetch} />
               </div>
             )}
-            <SleepScoreCard score={sleepScore} loading={loading} onOpenSettings={() => setSettingsOpen(true)} />
-            <EventsCard messages={messages} loading={loading} />
-            <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} fullWidth />
+            <SleepScoreCard
+              score={sleepScore}
+              loading={loading}
+              babyName={settings.babyName || baby?.name}
+              wakeHour={settings.wakeHour}
+              onOpenSettings={() => setSettingsOpen(true)}
+            />
+            <div className="col-span-full flex flex-col gap-4 lg:col-span-1">
+              <EventsCard messages={messages} loading={loading} />
+              <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
+            </div>
             <SectionCarouselTabs tabs={historyTabs} activeId={historyTab} onChange={setHistoryTab} />
           </div>
         )}

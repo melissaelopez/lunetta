@@ -3,13 +3,15 @@ import { Moon, Activity, RefreshCw, TrendingUp, Sparkles, CheckCircle, AlertTria
 import { Card } from '../common/Card';
 import { ErrorState } from '../common/ErrorState';
 import { GeminiKeyInput } from '../common/GeminiKeyInput';
+import { StatusChip } from '../common/StatusChip';
 import { NightInsightsChat } from './NightInsightsChat';
+import { rateTotalScore } from '../../utils/sleepRating';
 import { errorMessage } from '../../utils/errors';
 import { VideoAnalysisPanel } from './VideoAnalysisPanel';
 import * as api from '../../services/api';
 import { ApiRequestError, type NightInsights } from '../../services/api';
 import { subscribeGeminiKey } from '../../utils/geminiKey';
-import type { Baby } from '../../types';
+import type { Baby, ScoredNight } from '../../types';
 
 interface Props {
   baby: Baby | null;
@@ -19,6 +21,8 @@ interface Props {
   bedtimeHour: number;
   wakeHour: number;
   normalWakeMinutes?: number | null;
+  refreshKey?: number;
+  onScoreLoaded?: (score: ScoredNight | null) => void;
 }
 
 interface LiveNightData {
@@ -29,7 +33,7 @@ interface LiveNightData {
   lastEventTime: number | null;
 }
 
-export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, normalWakeMinutes }: Props) {
+export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, normalWakeMinutes, refreshKey = 0, onScoreLoaded }: Props) {
   const [data, setData] = useState<LiveNightData | null>(null);
   const [insights, setInsights] = useState<NightInsights | null>(null);
   const [insightsNeedsKey, setInsightsNeedsKey] = useState(false);
@@ -58,6 +62,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
       const lastEvent = tonightMsgs.length > 0 ? Math.max(...tonightMsgs.map(m => m.time)) : null;
 
       const mainScore = scores.find(s => s.is_main) ?? scores[0] ?? null;
+      onScoreLoaded?.(mainScore);
 
       const now = Math.floor(Date.now() / 1000);
       const elapsedMinutes = Math.round((now - nightStart) / 60);
@@ -80,7 +85,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
     } finally {
       setLoading(false);
     }
-  }, [baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, normalWakeMinutes]);
+  }, [baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, normalWakeMinutes, onScoreLoaded]);
 
   const fetchInsights = useCallback(async (force = false) => {
     if (!baby) return;
@@ -122,7 +127,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
     fetchData();
     const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, refreshKey]);
 
   if (loading) {
     return (
@@ -217,12 +222,15 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
           <div className="flex items-center gap-3 rounded-lg bg-slate-100 dark:bg-slate-900/50 p-3">
             <TrendingUp size={16} className="text-indigo-600 dark:text-indigo-400" />
             <div>
-              <p className="text-sm text-slate-700 dark:text-slate-300">
-                Running score: <span className="font-semibold text-slate-900 dark:text-white">{data.score.total_score}/100</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm text-slate-700 dark:text-slate-300">
+                  Running score: <span className="font-semibold text-slate-900 dark:text-white">{data.score.total_score}/100</span>
+                </p>
+                <StatusChip tier={rateTotalScore(data.score.total_score)} />
                 {data.score.details.wake_count > 0 && (
-                  <span className="ml-2 text-xs text-slate-600 dark:text-slate-400">({data.score.details.wake_count} wakes so far)</span>
+                  <span className="text-xs text-slate-600 dark:text-slate-400">({data.score.details.wake_count} wakes so far)</span>
                 )}
-              </p>
+              </div>
               {data.score.details.longest_stretch_minutes > 0 && (
                 <p className="text-xs text-slate-500">
                   Longest stretch: {formatDuration(data.score.details.longest_stretch_minutes)}

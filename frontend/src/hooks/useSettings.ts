@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { DateTime } from 'luxon';
 import * as api from '../services/api';
 
 export interface BabyMilestones {
@@ -157,4 +158,22 @@ export function nightWindow(dateStr: string, settings: SleepSettings): { start: 
     start: Math.floor(nightStart.getTime() / 1000),
     end: Math.floor(nightEnd.getTime() / 1000),
   };
+}
+
+/**
+ * Returns the YYYY-MM-DD of the night currently in progress, or null during daytime.
+ * A night belongs to the calendar date its bedtime starts on:
+ *  - From bedtimeHour until midnight -> today
+ *  - From midnight until wakeHour    -> yesterday
+ *  - From wakeHour until bedtimeHour -> null (no night in progress)
+ */
+export function activeNightDate(settings: SleepSettings, now: Date = new Date()): string | null {
+  const hour = now.getHours() + now.getMinutes() / 60;
+  if (hour >= settings.bedtimeHour) {
+    return DateTime.fromJSDate(now).toFormat('yyyy-MM-dd');
+  }
+  if (hour < settings.wakeHour) {
+    return DateTime.fromJSDate(now).minus({ days: 1 }).toFormat('yyyy-MM-dd');
+  }
+  return null;
 }
