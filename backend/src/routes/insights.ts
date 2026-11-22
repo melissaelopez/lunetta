@@ -10,6 +10,7 @@ import * as store from '../services/store.js';
 import { consumeAiBudget } from '../services/ai-budget.js';
 import { getBabyProfile, profilePromptBlock } from '../services/baby-context.js';
 import { dayPromptBlock, loadDays, napExpectations } from '../services/daytime.js';
+import { isGeminiConfigured } from '../services/gemini-adapter.js';
 
 const router = Router();
 
@@ -59,15 +60,23 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
     const profile = await getBabyProfile(babyUid);
     const adjAge = getAdjustedAgeMonths(birthdate, prematureWeeks, new Date(current.night.night_start * 1000));
 
-    // Check Firestore cache — skip for in-progress nights and forced regenerations.
+    // Optional per-request Gemini API key from client header. Never log, cache, or persist it.
+    const userGeminiKey = req.header('x-gemini-api-key')?.trim() || undefined;
+
+    // Check storage cache — skip for in-progress nights and forced regenerations.
     // The key includes the annotation timestamp so a manual adjustment invalidates it.
-    const nightKey = `${start}:v6:${current.annotation?.updated_at ?? 0}:p${profile.updated_at}`;
+    const nightKey = `${start}:v7:${current.annotation?.updated_at ?? 0}:p${profile.updated_at}`;
     if (!force && !isInProgress) {
       const cached = await store.getCachedInsight(babyUid, nightKey).catch(() => null);
       if (cached) {
-        res.json({ insights: cached });
+        res.json({ insights: cached, provider: 'gemini', using_user_key: !!userGeminiKey });
         return;
       }
+    }
+
+    if (!isGeminiConfigured(userGeminiKey)) {
+      res.json({ insights: null, needs_api_key: true, provider: 'gemini' });
+      return;
     }
 
     // Last 7 nights before this one, for comparison, and the naps/wake windows leading into this night
@@ -107,7 +116,10 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
       console.log(`[insights] Could not fetch events for video context: ${err.message}`);
     }
 
-    await consumeAiBudget(babyUid, 'insights');
+    // Only charge the shared server AI budget when using the server's key (BYOK is billed to the user's account)
+    if (!userGeminiKey) {
+      await consumeAiBudget(babyUid, 'insights');
+    }
     const insights = await generateNightInsights(
       { date: currentDate, score: current.score, night: current.night },
       recentNights,
@@ -119,13 +131,19 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
       profilePromptBlock(profile),
       force,
       dayBlock,
+      userGeminiKey,
     );
+
+    if (!insights) {
+      res.json({ insights: null, needs_api_key: true, provider: 'gemini' });
+      return;
+    }
 
     if (!isInProgress) {
       await store.cacheInsight(babyUid, nightKey, insights).catch(() => {});
     }
 
-    res.json({ insights, in_progress: isInProgress });
+    res.json({ insights, in_progress: isInProgress, provider: 'gemini', using_user_key: !!userGeminiKey });
   } catch (err: any) {
     handleRouteError(res, err, 'insights_failed');
   }

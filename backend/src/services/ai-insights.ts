@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import { z } from 'zod';
-import { generateStructured, isAiConfigured, missingAiApiKey, type ImageInput } from './ai.js';
+import { generateStructured, isAiConfigured, type ImageInput } from './ai.js';
+import { sanitizeGeminiError } from './gemini-adapter.js';
 import type { SleepScoreBreakdown } from '../types/app.js';
 import type { NightSummary } from './sleep-scorer.js';
 import type { WakeDetail } from './night-activity.js';
@@ -110,16 +111,20 @@ const RESPONSE_LABEL: Record<WakeDetail['response'], string> = {
   self_settled: 'SELF-SETTLED (no parent visit)',
   parent_visit: 'PARENT VISIT',
   taken_out: 'TAKEN OUT by parent',
+  asleep: 'BABY ASLEEP (false wake corrected by parent)',
   unknown: 'UNKNOWN (no camera visit data)',
 };
 
 /** One line per wake with how it ended; shared with the night comparison prompt. */
 export function describeWakes(wakes: WakeDetail[], fmt: (t: number) => string): string {
-  return wakes.map((w, i) => {
-    const by = w.source === 'parent' ? ', confirmed by parent' : '';
-    const visits = w.response !== 'self_settled' && w.visit_times.length ? `; parent at crib ${w.visit_times.map(fmt).join(', ')}` : '';
-    return `  Wake #${i + 1}: ${fmt(w.start)}, lasted ${Math.round(w.duration_minutes)} minutes, ${RESPONSE_LABEL[w.response]}${by}${visits}`;
-  }).join('\n');
+  return wakes
+    .filter(w => w.response !== 'asleep')
+    .map((w, i) => {
+      const by = w.source === 'parent' ? ', confirmed by parent' : '';
+      const visits = w.response !== 'self_settled' && w.visit_times.length ? `; parent at crib ${w.visit_times.map(fmt).join(', ')}` : '';
+      return `  Wake #${i + 1}: ${fmt(w.start)}, lasted ${Math.round(w.duration_minutes)} minutes, ${RESPONSE_LABEL[w.response]}${by}${visits}`;
+    })
+    .join('\n');
 }
 
 function buildPrompt(
@@ -168,7 +173,7 @@ ${nightLabel}:
 - Sleep Score${isInProgress ? ' so far' : ''}: ${cn.total_score}/100
   - Duration: ${cn.duration_score}/35 (${formatDuration(cd.total_sleep_minutes)}${isInProgress ? ' so far' : ''}, ${formatDuration(cd.target_sleep_minutes)} target)
   - Continuity: ${cn.continuity_score}/35 (${cd.wake_count} wakes${isInProgress ? ' so far' : ''}; ${cx.self_settled_wakes ?? 0} self-settled, which never count as extra wakes)
-  - Longest Stretch: ${cn.onset_score}/15 (${formatDuration(cd.longest_stretch_minutes)}; self-settled stirs of ${cx.brief_wake_minutes ?? 5} min or less don't break a stretch)
+  - Longest Stretch: ${cn.onset_score}/15 (${formatDuration(cd.longest_stretch_minutes)}; self-settled wakes don't break a stretch, and awake time during them is excluded)
   - Timing: ${cn.timing_score}/15 (bedtime ${fmt(cd.bedtime)})
 - Bedtime: ${fmt(cd.bedtime)}${!isInProgress ? `\n- Wake time: ${fmt(cd.wake_time)}` : ''}
 - ${currentNight.night.sleep_segments.length} sleep segments${isInProgress ? ' so far' : ''}
@@ -225,16 +230,11 @@ export async function generateNightInsights(
   profileBlock: string = '',
   force: boolean = false,
   dayBlock: string = '',
-): Promise<NightInsights> {
+  geminiApiKey?: string,
+): Promise<NightInsights | null> {
 
-  if (!isAiConfigured()) {
-    return {
-      summary: `AI insights require ${missingAiApiKey()} on the server.`,
-      keyFactors: { positive: [], negative: [] },
-      comparison: '',
-      patterns: [],
-      tip: '',
-    };
+  if (!isAiConfigured({ provider: 'gemini', geminiApiKey })) {
+    return null;
   }
 
   // Download thumbnails for events (up to 6 to keep request size manageable)
@@ -257,7 +257,8 @@ export async function generateNightInsights(
   const hasVideo = images.length > 0;
   const prompt = buildPrompt(currentNight, recentNights, adjustedAgeMonths, prematureWeeks, hasVideo, validEvents, isInProgress, tzOffset, profileBlock, dayBlock);
 
-  // In-memory cache (shorter TTL for in-progress nights); skipped on force
+  // In-memory cache (shorter TTL for in-progress nights); skipped on force.
+  // Never include geminiApiKey in the cache key or cached value.
   const cacheKey = createHash('sha1').update(prompt + images.map(i => i.label).join('|')).digest('hex');
   if (!force) {
     const ttl = isInProgress ? CACHE_TTL_IN_PROGRESS : CACHE_TTL;
@@ -270,10 +271,25 @@ export async function generateNightInsights(
   let insights: NightInsights;
   try {
     insights = hasVideo
-      ? await generateStructured({ label: 'insights', schema: InsightsWithVideoSchema, system: SYSTEM_PROMPT, prompt, images })
-      : await generateStructured({ label: 'insights', schema: BaseInsightsSchema, system: SYSTEM_PROMPT, prompt });
+      ? await generateStructured({
+          label: 'insights',
+          schema: InsightsWithVideoSchema,
+          system: SYSTEM_PROMPT,
+          prompt,
+          images,
+          providerOverride: 'gemini',
+          apiKeyOverride: geminiApiKey,
+        })
+      : await generateStructured({
+          label: 'insights',
+          schema: BaseInsightsSchema,
+          system: SYSTEM_PROMPT,
+          prompt,
+          providerOverride: 'gemini',
+          apiKeyOverride: geminiApiKey,
+        });
   } catch (err: any) {
-    console.error('[insights] AI provider request failed:', err.message);
+    console.error('[insights] Gemini request failed:', sanitizeGeminiError(String(err?.message || 'Unknown error')));
     throw err;
   }
 

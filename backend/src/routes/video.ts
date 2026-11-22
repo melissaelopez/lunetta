@@ -15,16 +15,18 @@ import * as store from '../services/store.js';
 import { consumeAiBudget } from '../services/ai-budget.js';
 import { getBabyProfile, profilePromptBlock } from '../services/baby-context.js';
 import { isAiConfigured } from '../services/ai.js';
+import { sanitizeGeminiError } from '../services/gemini-adapter.js';
 
 const router = Router();
 
 // Check video capabilities
-router.get('/:babyUid/video/status', requireToken, async (_req, res) => {
+router.get('/:babyUid/video/status', requireToken, async (req, res) => {
   const hasFfmpeg = await video.checkFfmpeg();
+  const userGeminiKey = req.header('x-gemini-api-key')?.trim();
   res.json({
     ffmpeg_available: hasFfmpeg,
     ai_available: isAiConfigured(),
-    audio_available: !!process.env.GEMINI_API_KEY,
+    audio_available: !!(userGeminiKey || process.env.GEMINI_API_KEY),
     stream_url_format: 'rtmps://media-secured.nanit.com/nanit/{baby_uid}.{token}',
   });
 });
@@ -256,15 +258,18 @@ router.post('/:babyUid/video/analyze-audio', requireToken, async (req, res) => {
       return;
     }
 
-    await consumeAiBudget(babyUid, 'audio');
+    const userGeminiKey = req.header('x-gemini-api-key')?.trim() || undefined;
+    if (!userGeminiKey) {
+      await consumeAiBudget(babyUid, 'audio');
+    }
     const { analyzeAudio } = await import('../services/audio-analysis.js');
-    const analysis = await analyzeAudio(clip_url, event_type || 'unknown', adjAge, profilePromptBlock(profile));
+    const analysis = await analyzeAudio(clip_url, event_type || 'unknown', adjAge, profilePromptBlock(profile), userGeminiKey);
 
     await store.cacheInsight(babyUid, cacheKey, analysis).catch(() => {});
 
     res.json({ analysis, cached: false });
   } catch (err: any) {
-    console.error('[audio] Route error:', err.message);
+    console.error('[audio] Route error:', sanitizeGeminiError(String(err?.message || 'Unknown error')));
     handleRouteError(res, err, 'audio_analysis_failed');
   }
 });

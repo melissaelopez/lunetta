@@ -112,7 +112,7 @@ router.get('/:babyUid/sleep/trend', requireToken, async (req, res) => {
     // Keep a row for every requested date so the chart shows gaps
     const { pastNightDates } = await import('../services/night-windows.js');
     const trend = pastNightDates(p.days, p.tzOffset).map(date =>
-      byDate.get(date) ?? { date, score: null, total_sleep_minutes: null },
+      byDate.get(date) ?? { date, score: null, total_sleep_minutes: null, longest_stretch_minutes: null },
     );
     res.json({ trend });
   } catch (err: any) {
@@ -298,7 +298,7 @@ router.get('/:babyUid/sleep/schedule-optimizer', requireToken, async (req, res) 
   }
 });
 
-const WAKE_RESPONSES: WakeResponse[] = ['self_settled', 'parent_visit', 'taken_out'];
+const WAKE_RESPONSES: WakeResponse[] = ['self_settled', 'parent_visit', 'taken_out', 'asleep'];
 
 /**
  * Save (or clear) a manual night adjustment. Body fields, all optional:

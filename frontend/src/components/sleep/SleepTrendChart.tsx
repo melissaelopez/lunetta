@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Card } from '../common/Card';
 import { ErrorState } from '../common/ErrorState';
 import { errorMessage } from '../../utils/errors';
+import { formatDuration } from '../../utils/date';
 import * as api from '../../services/api';
 import type { TrendPoint } from '../../services/api';
 import type { Baby } from '../../types';
@@ -36,6 +37,7 @@ const CHART_COLORS = {
     tooltipBorder: '#e2e8f0',
     tooltipText: '#0f172a', // slate-900
     score: '#6366f1',       // indigo-500
+    stretch: '#0d9488',     // teal-600
     hours: '#6366f1',
     wakes: '#f59e0b',       // amber-500
   },
@@ -46,6 +48,7 @@ const CHART_COLORS = {
     tooltipBorder: '#334155',
     tooltipText: '#f1f5f9', // slate-100
     score: '#818cf8',       // indigo-400
+    stretch: '#2dd4bf',     // teal-400
     hours: '#818cf8',
     wakes: '#fbbf24',       // amber-400
   },
@@ -91,9 +94,18 @@ export function SleepTrendChart({ baby, bedtimeHour, wakeHour, prematureWeeks }:
   const chartData = trend.map(t => ({
     date: t.date.slice(5), // "04-10" -> "04-10"
     score: t.score,
+    longestStretchHours: t.longest_stretch_minutes != null ? t.longest_stretch_minutes / 60 : null,
     sleepHours: t.total_sleep_minutes ? Math.round(t.total_sleep_minutes / 6) / 10 : null, // round to 0.1h
     wakeUps: t.wake_count ?? null,
   }));
+
+  const stretchValues = trend
+    .map(t => t.longest_stretch_minutes)
+    .filter((v): v is number => typeof v === 'number' && v > 0);
+  const avgStretchMinutes = stretchValues.length > 0
+    ? Math.round(stretchValues.reduce((sum, v) => sum + v, 0) / stretchValues.length)
+    : null;
+  const bestStretchMinutes = stretchValues.length > 0 ? Math.max(...stretchValues) : null;
 
   return (
     <Card
@@ -139,6 +151,43 @@ export function SleepTrendChart({ baby, bedtimeHour, wakeHour, prematureWeeks }:
                   stroke={colors.score}
                   strokeWidth={2}
                   dot={{ fill: colors.score, r: 3 }}
+                  connectNulls
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Longest stretch trend */}
+          <div>
+            <div className="mb-2 flex items-baseline justify-between gap-2">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Longest Stretch</p>
+              {avgStretchMinutes !== null && bestStretchMinutes !== null && (
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  Avg {formatDuration(avgStretchMinutes)} · Best {formatDuration(bestStretchMinutes)}
+                </p>
+              )}
+            </div>
+            <ResponsiveContainer width="100%" height={160}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: colors.tick }} />
+                <YAxis
+                  domain={[0, (dataMax: number) => Math.max(4, Math.ceil(dataMax))]}
+                  tickFormatter={(v: number) => `${v}h`}
+                  tick={{ fontSize: 11, fill: colors.tick }}
+                />
+                <Tooltip
+                  contentStyle={{ backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: 8, fontSize: 12, color: colors.tooltipText }}
+                  labelStyle={{ color: colors.tick }}
+                  formatter={(value) => [typeof value === 'number' ? formatDuration(Math.round(value * 60)) : '—', 'Longest stretch']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="longestStretchHours"
+                  name="Longest stretch"
+                  stroke={colors.stretch}
+                  strokeWidth={2}
+                  dot={{ fill: colors.stretch, r: 3 }}
                   connectNulls
                 />
               </LineChart>

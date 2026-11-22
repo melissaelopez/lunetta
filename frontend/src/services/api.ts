@@ -9,8 +9,25 @@ import type {
   WakeResponse,
   DaysResponse,
 } from '../types';
+import { clearGeminiKey, getGeminiKey } from '../utils/geminiKey';
 
 const BASE = '/api';
+
+export class ApiRequestError extends Error {
+  code?: string;
+  status?: number;
+  constructor(message: string, code?: string, status?: number) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.code = code;
+    this.status = status;
+  }
+}
+
+function geminiHeaders(): Record<string, string> {
+  const key = getGeminiKey();
+  return key ? { 'X-Gemini-Api-Key': key } : {};
+}
 
 function getToken(): string | null {
   return localStorage.getItem('lunetta_access_token');
@@ -155,6 +172,7 @@ export async function loginMfa(
 
 export function logout() {
   clearTokens();
+  clearGeminiKey();
   window.location.href = '/login';
 }
 
@@ -293,7 +311,7 @@ export interface TrendPoint {
   score: number | null;
   total_sleep_minutes: number | null;
   wake_count?: number;
-  longest_stretch_minutes?: number;
+  longest_stretch_minutes?: number | null;
   bedtime?: string;
   wake_time?: string;
 }
@@ -439,6 +457,7 @@ export async function analyzeAudio(
 ): Promise<{ analysis: AudioAnalysis; cached: boolean }> {
   const res = await authFetch(`${BASE}/babies/${babyUid}/video/analyze-audio`, {
     method: 'POST',
+    headers: geminiHeaders(),
     body: JSON.stringify({
       clip_url: clipUrl,
       event_type: eventType,
@@ -446,7 +465,9 @@ export async function analyzeAudio(
       premature_weeks: prematureWeeks,
     }),
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new ApiRequestError(data.message || 'Audio analysis failed', data.error, res.status);
+  return data;
 }
 
 // Milestones — celebration-worthy achievements
@@ -501,6 +522,12 @@ export interface NightInsights {
   video_observations?: string[]; // legacy field
 }
 
+export interface NightInsightsResult {
+  insights: NightInsights | null;
+  needsApiKey: boolean;
+  usingUserKey: boolean;
+}
+
 export async function getInsights(
   babyUid: string,
   start: number,
@@ -510,7 +537,7 @@ export async function getInsights(
   bedtimeHour: number = 19,
   wakeHour: number = 8,
   force = false,
-): Promise<NightInsights> {
+): Promise<NightInsightsResult> {
   const params = new URLSearchParams({
     start: String(start),
     end: String(end),
@@ -521,9 +548,17 @@ export async function getInsights(
     tz_offset: String(new Date().getTimezoneOffset()),
     ...(force ? { force: 'true' } : {}),
   });
-  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/insights?${params}`);
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/insights?${params}`, {
+    headers: geminiHeaders(),
+  });
   const data = await res.json();
-  let insights = data.insights;
+  if (!res.ok) {
+    throw new ApiRequestError(data.message || 'Failed to generate insights', data.error, res.status);
+  }
+  if (data.needs_api_key) {
+    return { insights: null, needsApiKey: true, usingUserKey: false };
+  }
+  let insights = data.insights ?? null;
 
   // Defensive: backend may return insights as a JSON string (e.g. from stale cache)
   if (typeof insights === 'string') {
@@ -539,7 +574,11 @@ export async function getInsights(
     } catch { /* leave as-is */ }
   }
 
-  return insights;
+  return {
+    insights,
+    needsApiKey: false,
+    usingUserKey: !!data.using_user_key,
+  };
 }
 
 // Events
@@ -581,7 +620,7 @@ export async function analyzeVideoClip(
 }
 
 export async function getVideoStatus(babyUid: string): Promise<{ ffmpeg_available: boolean; ai_available: boolean; audio_available: boolean }> {
-  const res = await authFetch(`${BASE}/babies/${babyUid}/video/status`);
+  const res = await authFetch(`${BASE}/babies/${babyUid}/video/status`, { headers: geminiHeaders() });
   return res.json();
 }
 

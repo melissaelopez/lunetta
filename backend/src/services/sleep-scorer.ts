@@ -161,17 +161,19 @@ export function buildNightSummaries(sleepEntries: NanitCalendarEntry[]): NightSu
   const sorted = [...sleepEntries].sort((a, b) => a.begin_ts - b.begin_ts);
   const nights: NightSummary[] = [];
   let currentNight: NanitCalendarEntry[] = [sorted[0]];
+  let currentNightEnd = sorted[0].end_ts;
 
   for (let i = 1; i < sorted.length; i++) {
-    const prev = currentNight[currentNight.length - 1];
     const curr = sorted[i];
-    const gapMinutes = (curr.begin_ts - prev.end_ts) / 60;
+    const gapMinutes = (curr.begin_ts - currentNightEnd) / 60;
 
     if (gapMinutes > NIGHT_SPLIT_MINUTES) {
       nights.push(summarizeNight(currentNight));
       currentNight = [curr];
+      currentNightEnd = curr.end_ts;
     } else {
       currentNight.push(curr);
+      currentNightEnd = Math.max(currentNightEnd, curr.end_ts);
     }
   }
   nights.push(summarizeNight(currentNight));
@@ -180,26 +182,38 @@ export function buildNightSummaries(sleepEntries: NanitCalendarEntry[]): NightSu
 }
 
 function summarizeNight(segments: NanitCalendarEntry[]): NightSummary {
-  const nightStart = segments[0].begin_ts;
-  const nightEnd = segments[segments.length - 1].end_ts;
-  const totalDuration = segments.reduce((sum, s) => sum + s.duration, 0) / 60;
+  const sorted = [...segments].sort((a, b) => a.begin_ts - b.begin_ts);
+  const nightStart = sorted[0].begin_ts;
 
   const gaps: { start: number; end: number; duration_minutes: number }[] = [];
-  for (let i = 1; i < segments.length; i++) {
-    const gapStart = segments[i - 1].end_ts;
-    const gapEnd = segments[i].begin_ts;
-    if (gapEnd > gapStart) {
-      gaps.push({ start: gapStart, end: gapEnd, duration_minutes: (gapEnd - gapStart) / 60 });
-    }
-  }
+  let maxEnd = sorted[0].end_ts;
+  let mergedStart = sorted[0].begin_ts;
+  let mergedEnd = sorted[0].end_ts;
+  let totalSleepSeconds = 0;
 
-  const longestStretch = Math.max(...segments.map(s => s.duration / 60));
+  for (let i = 1; i < sorted.length; i++) {
+    const seg = sorted[i];
+    if (seg.begin_ts > maxEnd) {
+      gaps.push({ start: maxEnd, end: seg.begin_ts, duration_minutes: (seg.begin_ts - maxEnd) / 60 });
+      totalSleepSeconds += mergedEnd - mergedStart;
+      mergedStart = seg.begin_ts;
+      mergedEnd = seg.end_ts;
+    } else {
+      mergedEnd = Math.max(mergedEnd, seg.end_ts);
+    }
+    maxEnd = Math.max(maxEnd, seg.end_ts);
+  }
+  totalSleepSeconds += mergedEnd - mergedStart;
+
+  const nightEnd = maxEnd;
+  const totalDuration = totalSleepSeconds / 60;
+  const longestStretch = Math.max(...sorted.map(s => (s.end_ts - s.begin_ts) / 60));
 
   return {
     night_start: nightStart,
     night_end: nightEnd,
     total_duration_minutes: totalDuration,
-    sleep_segments: segments,
+    sleep_segments: sorted,
     gap_count: gaps.length,
     gaps,
     longest_stretch_minutes: longestStretch,
@@ -263,28 +277,79 @@ export interface ScoreOptions {
   activity?: WindowActivity | null;
 }
 
-/** A self-settled wake at most this long doesn't break the "longest stretch". */
-export const BRIEF_WAKE_MINUTES = 5;
+export interface LongestStretch {
+  /** Start of the first sleep segment in the stretch (unix seconds). */
+  start: number;
+  /** End of the last sleep segment in the stretch (unix seconds). */
+  end: number;
+  /** Total asleep duration in minutes (excludes awake time during bridged self-settled wakes). */
+  duration_minutes: number;
+}
 
 /**
- * Longest stretch of sleep, treating brief wakes the baby settled from on
- * their own as part of the stretch (a 1-minute stir without a visit isn't a real break).
+ * Finds the longest stretch of sleep, excluding self-settled wakes:
+ *  - Any wake classified as `self_settled` bridges adjacent sleep segments rather
+ *    than breaking the stretch, with its awake duration excluded from the stretch total.
+ *  - Any wake corrected by the parent to `asleep` (false-positive wake) merges
+ *    adjacent sleep segments into continuous sleep, including that gap's duration.
+ *  - Non-self-settled wakes (`parent_visit`, `taken_out`, `unknown`) break a stretch.
  */
-function longestStretchMinutes(night: NightSummary, wakes: WakeDetail[]): number {
-  if (night.sleep_segments.length === 0) return 0;
-  const bridges = new Set(
-    wakes.filter(w => w.response === 'self_settled' && w.duration_minutes <= BRIEF_WAKE_MINUTES).map(w => w.start),
+export function findLongestStretch(night: NightSummary, wakes: WakeDetail[]): LongestStretch | null {
+  if (night.sleep_segments.length === 0) return null;
+  const selfSettledStarts = new Set(
+    wakes.filter(w => w.response === 'self_settled').map(w => Math.round(w.start)),
   );
-  let best = 0;
-  let runStart = night.sleep_segments[0].begin_ts;
-  for (let i = 0; i < night.sleep_segments.length; i++) {
-    const seg = night.sleep_segments[i];
-    const next = night.sleep_segments[i + 1];
-    if (next && (next.begin_ts <= seg.end_ts || bridges.has(seg.end_ts))) continue;
-    best = Math.max(best, (seg.end_ts - runStart) / 60);
-    if (next) runStart = next.begin_ts;
+  const asleepStarts = new Set(
+    wakes.filter(w => w.response === 'asleep').map(w => Math.round(w.start)),
+  );
+  const segs = [...night.sleep_segments].sort((a, b) => a.begin_ts - b.begin_ts);
+
+  let bestSeconds = -1;
+  let bestStart = segs[0].begin_ts;
+  let bestEnd = segs[0].end_ts;
+
+  let runSleepSeconds = 0;
+  let runStart = segs[0].begin_ts;
+  let mergedStart = segs[0].begin_ts;
+  let mergedEnd = segs[0].end_ts;
+
+  const finishRun = (endTs: number) => {
+    const total = runSleepSeconds + (endTs - mergedStart);
+    if (total > bestSeconds) {
+      bestSeconds = total;
+      bestStart = runStart;
+      bestEnd = endTs;
+    }
+  };
+
+  for (let i = 1; i < segs.length; i++) {
+    const seg = segs[i];
+    if (seg.begin_ts <= mergedEnd || asleepStarts.has(Math.round(mergedEnd))) {
+      mergedEnd = Math.max(mergedEnd, seg.end_ts);
+      continue;
+    }
+
+    if (selfSettledStarts.has(Math.round(mergedEnd))) {
+      runSleepSeconds += mergedEnd - mergedStart;
+    } else {
+      finishRun(mergedEnd);
+      runSleepSeconds = 0;
+      runStart = seg.begin_ts;
+    }
+    mergedStart = seg.begin_ts;
+    mergedEnd = seg.end_ts;
   }
-  return best;
+
+  finishRun(mergedEnd);
+  return {
+    start: bestStart,
+    end: bestEnd,
+    duration_minutes: Math.max(0, bestSeconds) / 60,
+  };
+}
+
+export function longestStretchMinutes(night: NightSummary, wakes: WakeDetail[]): number {
+  return findLongestStretch(night, wakes)?.duration_minutes ?? 0;
 }
 
 /** Expected longest stretch (hours) by adjusted age. */
@@ -302,7 +367,13 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
   const adjAge = getAdjustedAgeMonths(birthdate, prematureWeeks, new Date(night.night_start * 1000));
   const expect = getExpectations(adjAge);
 
-  const actualSleepMinutes = night.total_duration_minutes;
+  // Gaps the parent corrected to "Baby asleep" are false wakes: count them as sleep, not wakes
+  const falseWakeMinutes = wakes
+    .filter(w => w.response === 'asleep')
+    .reduce((sum, w) => sum + w.duration_minutes, 0);
+  const realWakes = wakes.filter(w => w.response !== 'asleep');
+
+  const actualSleepMinutes = night.total_duration_minutes + falseWakeMinutes;
   const targetMinutes = expect.nightSleepHours.ideal * 60;
 
   // === 1. DURATION SCORE (0-35) ===
@@ -323,7 +394,7 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
   // half (the lost sleep already shows up in Duration).
   let continuityScore = 35;
 
-  const totalWakes = night.gaps.length;
+  const totalWakes = realWakes.length;
   const disruptiveWakes = totalWakes - counts.self_settled;
   const excessWakeCount = Math.max(0, disruptiveWakes - expect.expectedWakes);
 
@@ -333,7 +404,7 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
 
   // -1 per 5 minutes a wake runs past the normal duration, capped at -5 per wake
   let longWakePenalty = 0;
-  for (const wake of wakes) {
+  for (const wake of realWakes) {
     const excessMinutes = Math.max(0, wake.duration_minutes - expect.normalWakeDuration);
     if (excessMinutes > 0) {
       const penalty = Math.min(Math.floor(excessMinutes / 5), 5);
@@ -343,7 +414,8 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
   continuityScore = Math.max(0, continuityScore - longWakePenalty);
 
   // === 3. LONGEST STRETCH SCORE (0-15) ===
-  const longestStretch = longestStretchMinutes(night, wakes);
+  const longestStretchSpan = findLongestStretch(night, wakes);
+  const longestStretch = longestStretchSpan?.duration_minutes ?? 0;
   const longestHours = longestStretch / 60;
   const expectedStretch = expectedStretchHours(adjAge);
   const stretchRatio = longestHours / expectedStretch;
@@ -391,6 +463,13 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
       target_sleep_minutes: Math.round(targetMinutes),
       wake_count: totalWakes,
       longest_stretch_minutes: Math.round(longestStretch),
+      ...(longestStretchSpan && {
+        longest_stretch: {
+          start: longestStretchSpan.start,
+          end: longestStretchSpan.end,
+          duration_minutes: Math.round(longestStretchSpan.duration_minutes),
+        },
+      }),
       bedtime: new Date(night.night_start * 1000).toISOString(),
       wake_time: new Date(night.night_end * 1000).toISOString(),
       ...(hasCustomStart && { custom_bedtime: new Date(annotation!.custom_start_time! * 1000).toISOString() }),
@@ -409,7 +488,6 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
       ideal_bedtime_range: [idealStart, idealEnd],
       excess_wake_penalty: excessWakePenalty,
       long_wake_penalty: longWakePenalty,
-      brief_wake_minutes: BRIEF_WAKE_MINUTES,
       self_settled_wakes: counts.self_settled,
       parent_visit_wakes: counts.parent_visit + counts.taken_out,
       unknown_wakes: counts.unknown,

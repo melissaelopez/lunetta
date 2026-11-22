@@ -30,7 +30,7 @@ export interface WindowActivity {
   events: StateEvent[];
 }
 
-export type WakeResponse = 'self_settled' | 'parent_visit' | 'taken_out' | 'unknown';
+export type WakeResponse = 'self_settled' | 'parent_visit' | 'taken_out' | 'asleep' | 'unknown';
 
 export interface WakeDetail {
   start: number;
@@ -86,11 +86,12 @@ export function findCheckIns(
   activity: WindowActivity | null | undefined,
 ): CheckIn[] {
   if (!activity?.covered) return [];
-  const inWake = new Set(wakes.flatMap(w => w.visit_times));
+  const realWakes = wakes.filter(w => w.response !== 'asleep');
+  const inWake = new Set(realWakes.flatMap(w => w.visit_times));
   return activity.events
     .filter(e => e.key === 'VISIT' && e.time > night.night_start && e.time < night.night_end && !inWake.has(e.time))
     .map(e => {
-      const next = wakes.find(w => w.start >= e.time && w.start - e.time <= 15 * 60);
+      const next = realWakes.find(w => w.start >= e.time && w.start - e.time <= 15 * 60);
       return { time: e.time, ...(next && { wake_within_minutes: Math.round((next.start - e.time) / 60) }) };
     });
 }
@@ -100,6 +101,7 @@ export function wakeCounts(wakes: WakeDetail[]) {
     self_settled: wakes.filter(w => w.response === 'self_settled').length,
     parent_visit: wakes.filter(w => w.response === 'parent_visit').length,
     taken_out: wakes.filter(w => w.response === 'taken_out').length,
+    asleep: wakes.filter(w => w.response === 'asleep').length,
     unknown: wakes.filter(w => w.response === 'unknown').length,
   };
 }

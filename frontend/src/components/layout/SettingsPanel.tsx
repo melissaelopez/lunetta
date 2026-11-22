@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Settings, X, Baby, Clock, Sparkles, Shield } from 'lucide-react';
+import { Settings, X, Baby, Clock, Sparkles, Shield, KeyRound } from 'lucide-react';
 import { GA_MEASUREMENT_ID, getAnalyticsChoice, setAnalyticsChoice } from '../../analytics';
 import type { SleepSettings, BabyMilestones, Sleepwear, Pronouns } from '../../hooks/useSettings';
 import { adjustedAgeMonths } from '../../hooks/useSettings';
+import { GeminiKeyInput } from '../common/GeminiKeyInput';
 
 interface Props {
   open: boolean;
@@ -263,6 +264,18 @@ export function SettingsPanel({ open, onClose, settings, onUpdate, birthdate, na
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500"
               />
             </div>
+          </div>
+
+          {/* Gemini API Key (BYOK, browser-only) */}
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <KeyRound size={16} className="text-indigo-400" />
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">AI Insights (Gemini API Key)</h3>
+            </div>
+            <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+              AI Insights are powered by Google Gemini. Bring your own Gemini API key to generate insights without sharing server quota.
+            </p>
+            <GeminiKeyInput />
           </div>
 
           {/* Privacy */}

@@ -2,10 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import type Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { GoogleGenerativeAIFetchError, type GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import { hasProviderApiKey, resolveAiSettings } from '../src/config.js';
 import { generateClaudeStructured } from '../src/services/claude.js';
 import { generateOpenAIStructured } from '../src/services/openai-adapter.js';
+import { generateGeminiStructured, sanitizeGeminiError, zodToGeminiSchema } from '../src/services/gemini-adapter.js';
 import { aiApiErrorResponse } from '../src/services/ai-api-error.js';
 import { handleRouteError } from '../src/middleware/errorHandler.js';
 
@@ -171,4 +173,142 @@ test('provider API errors do not look like expired Nanit sessions', () => {
   handleRouteError(rateLimit.res, new OpenAI.APIError(429, { message: 'Rate limited' }, 'Rate limited', new Headers()));
   assert.equal(rateLimit.status, 429);
   assert.equal((rateLimit.body as any).error, 'ai_error');
+});
+
+test('Gemini provider settings and key availability work alongside Claude and OpenAI', () => {
+  assert.equal(resolveAiSettings('gemini').provider, 'gemini');
+  assert.equal(resolveAiSettings('gemini', 'gemini-2.5-flash', 'low').model, 'gemini-2.5-flash');
+  assert.throws(() => resolveAiSettings('gemini', 'claude-opus-5'), /Claude model/);
+  assert.throws(() => resolveAiSettings('gemini', 'gpt-6-luna'), /OpenAI model/);
+  assert.throws(() => resolveAiSettings('anthropic', 'gemini-2.5-flash'), /Gemini model/);
+
+  assert.equal(hasProviderApiKey('gemini', { gemini: 'gem-key' }), true);
+  assert.equal(hasProviderApiKey('gemini', { anthropic: 'ant-key', openai: 'oa-key' }), false);
+});
+
+test('zodToGeminiSchema strips unsupported JSON Schema keywords and preserves structure', () => {
+  const ComplexSchema = z.object({
+    summary: z.string().describe('Short summary'),
+    score: z.number().int().min(1).max(5),
+    mood: z.enum(['calm', 'fussy']),
+    notes: z.array(z.string()),
+    optionalDetail: z.string().nullable(),
+  });
+  const schema = zodToGeminiSchema(ComplexSchema) as any;
+  assert.equal(schema.type, 'object');
+  assert.equal(schema.$schema, undefined);
+  assert.equal(schema.additionalProperties, undefined);
+  assert.equal(schema.properties.score.type, 'integer');
+  assert.equal(schema.properties.score.minimum, undefined);
+  assert.equal(schema.properties.score.maximum, undefined);
+  assert.equal(schema.properties.mood.format, 'enum');
+  assert.deepEqual(schema.properties.mood.enum, ['calm', 'fussy']);
+  assert.equal(schema.properties.notes.type, 'array');
+  assert.equal(schema.properties.optionalDetail.nullable, true);
+});
+
+test('Gemini adapter handles text-only and multimodal requests with image labels in order', async () => {
+  let capturedModelParams: any;
+  let capturedParts: any;
+  const mockClient = {
+    getGenerativeModel(modelParams: any) {
+      capturedModelParams = modelParams;
+      return {
+        async generateContent(parts: any) {
+          capturedParts = parts;
+          return {
+            response: {
+              candidates: [{ finishReason: 'STOP' }],
+              usageMetadata: { promptTokenCount: 12, candidatesTokenCount: 6 },
+              text: () => '{"result":"hello from gemini"}',
+            },
+          };
+        },
+      };
+    },
+  } as unknown as GoogleGenerativeAI;
+
+  const result = await generateGeminiStructured(
+    {
+      ...request,
+      apiKeyOverride: 'AIzaTestFakeUserKey1234567890',
+      images: [
+        { mimeType: 'application/octet-stream', data: jpegData, label: 'Frame 1' },
+        { mimeType: 'image/jpeg', data: pngData, label: 'Frame 2' },
+      ],
+    },
+    mockClient,
+  );
+
+  assert.deepEqual(result, { result: 'hello from gemini' });
+  assert.equal(capturedModelParams.systemInstruction, request.system);
+  assert.equal(capturedModelParams.generationConfig.responseMimeType, 'application/json');
+  assert.equal(capturedModelParams.generationConfig.responseSchema.type, 'object');
+  assert.equal(capturedParts.length, 5);
+  assert.deepEqual(capturedParts[0], { text: 'Frame 1' });
+  assert.deepEqual(capturedParts[1], { inlineData: { mimeType: 'image/jpeg', data: jpegData } });
+  assert.deepEqual(capturedParts[2], { text: 'Frame 2' });
+  assert.deepEqual(capturedParts[3], { inlineData: { mimeType: 'image/png', data: pngData } });
+  assert.deepEqual(capturedParts[4], { text: request.prompt });
+});
+
+test('Gemini adapter rejects unsupported image bytes before sending a request', async () => {
+  let sent = false;
+  const mockClient = {
+    getGenerativeModel() {
+      sent = true;
+      return { generateContent: async () => ({}) };
+    },
+  } as unknown as GoogleGenerativeAI;
+
+  await assert.rejects(
+    generateGeminiStructured(
+      { ...request, apiKeyOverride: 'AIzaTestFakeUserKey1234567890', images: [{ mimeType: 'image/jpeg', data: 'bm90IGFuIGltYWdl' }] },
+      mockClient,
+    ),
+    /Unsupported image format/,
+  );
+  assert.equal(sent, false);
+});
+
+test('Gemini errors redact API keys and never trigger Nanit 401 logout', () => {
+  const secretKey = 'AIzaSyFakeSecretKey9876543210';
+  const sanitized = sanitizeGeminiError(`Request to https://example.com?key=${secretKey} failed with ${secretKey}`);
+  assert.equal(sanitized.includes(secretKey), false);
+  assert.match(sanitized, /\[REDACTED\]/);
+
+  const captureResponse = () => {
+    let status = 0;
+    let body: unknown;
+    const res = {
+      status(code: number) { status = code; return this; },
+      json(value: unknown) { body = value; return this; },
+    } as any;
+    return { res, get status() { return status; }, get body() { return body; } };
+  };
+
+  const invalidKey400 = captureResponse();
+  handleRouteError(
+    invalidKey400.res,
+    new GoogleGenerativeAIFetchError(`API key not valid: ${secretKey}`, 400, 'Bad Request'),
+  );
+  assert.equal(invalidKey400.status, 502);
+  assert.equal((invalidKey400.body as any).error, 'ai_invalid_key');
+  assert.equal(JSON.stringify(invalidKey400.body).includes(secretKey), false);
+
+  const unauthorized401 = captureResponse();
+  handleRouteError(
+    unauthorized401.res,
+    new GoogleGenerativeAIFetchError('Unauthorized', 401, 'Unauthorized'),
+  );
+  assert.equal(unauthorized401.status, 502);
+  assert.equal((unauthorized401.body as any).error, 'ai_invalid_key');
+
+  const rateLimited429 = captureResponse();
+  handleRouteError(
+    rateLimited429.res,
+    new GoogleGenerativeAIFetchError('Quota exceeded', 429, 'Too Many Requests'),
+  );
+  assert.equal(rateLimited429.status, 429);
+  assert.equal((rateLimited429.body as any).error, 'ai_error');
 });

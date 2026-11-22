@@ -3,7 +3,7 @@ import { Card } from '../common/Card';
 import { ScoreRing } from '../common/ScoreRing';
 import { StatValue } from '../common/StatValue';
 import { formatTime, formatDuration } from '../../utils/date';
-import { Moon, Clock, Eye, Timer, ChevronDown, ChevronUp } from 'lucide-react';
+import { Moon, Clock, Eye, Timer, Hourglass, ChevronDown, ChevronUp } from 'lucide-react';
 import type { SleepScoreBreakdown } from '../../types';
 
 interface Props {
@@ -60,8 +60,7 @@ export function SleepScoreCard({ score, loading }: Props) {
     {
       label: 'Stretch',
       value: score.onset_score, max: 15,
-      note: `Longest ${formatDuration(d.longest_stretch_minutes)} vs ${x.expected_stretch_hours}h expected` +
-        (x.brief_wake_minutes ? ` (self-settled stirs of ${x.brief_wake_minutes} min or less don't break a stretch)` : ''),
+      note: `Longest ${formatDuration(d.longest_stretch_minutes)} vs ${x.expected_stretch_hours}h expected (excludes self-settled wakes)`,
     },
     {
       label: 'Timing',
@@ -78,7 +77,7 @@ export function SleepScoreCard({ score, loading }: Props) {
     >
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
         <ScoreRing score={score.total_score} size={100} />
-        <div className="grid w-full flex-1 grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid w-full flex-1 grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
           <StatValue
             icon={<Moon size={16} />}
             label="Bedtime"
@@ -98,10 +97,20 @@ export function SleepScoreCard({ score, loading }: Props) {
             sub={`Target: ${formatDuration(d.target_sleep_minutes)}`}
           />
           <StatValue
+            icon={<Hourglass size={16} />}
+            label="Longest stretch"
+            value={formatDuration(d.longest_stretch_minutes)}
+            sub={x ? `Expected: ${x.expected_stretch_hours}h` : undefined}
+          />
+          <StatValue
             icon={<Eye size={16} />}
             label="Wake-ups"
             value={d.wake_count}
-            sub={hasVisitData && d.wake_count > 0 ? `${settled} self-settled · longest ${formatDuration(d.longest_stretch_minutes)}` : `Longest: ${formatDuration(d.longest_stretch_minutes)}`}
+            sub={
+              hasVisitData && d.wake_count > 0
+                ? (settled > 0 ? `${settled} self-settled` : `${visited} parent visit${visited === 1 ? '' : 's'}`)
+                : undefined
+            }
           />
         </div>
       </div>

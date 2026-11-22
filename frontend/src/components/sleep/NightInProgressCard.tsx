@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { Moon, Activity, RefreshCw, TrendingUp, Sparkles, CheckCircle, AlertTriangle, Lightbulb } from 'lucide-react';
 import { Card } from '../common/Card';
 import { ErrorState } from '../common/ErrorState';
+import { GeminiKeyInput } from '../common/GeminiKeyInput';
 import { errorMessage } from '../../utils/errors';
 import { VideoAnalysisPanel } from './VideoAnalysisPanel';
 import * as api from '../../services/api';
-import type { NightInsights } from '../../services/api';
+import { ApiRequestError, type NightInsights } from '../../services/api';
+import { subscribeGeminiKey } from '../../utils/geminiKey';
 import type { Baby } from '../../types';
 
 interface Props {
@@ -28,6 +30,8 @@ interface LiveNightData {
 export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour }: Props) {
   const [data, setData] = useState<LiveNightData | null>(null);
   const [insights, setInsights] = useState<NightInsights | null>(null);
+  const [insightsNeedsKey, setInsightsNeedsKey] = useState(false);
+  const [insightsInvalidKey, setInsightsInvalidKey] = useState(false);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsRegenerating, setInsightsRegenerating] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -85,9 +89,12 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
     }
     try {
       const result = await api.getInsights(baby.uid, nightStart, nightEnd, baby.birthdate, prematureWeeks, bedtimeHour, wakeHour, force);
-      setInsights(result);
+      setInsightsNeedsKey(result.needsApiKey);
+      setInsightsInvalidKey(false);
+      setInsights(result.insights);
       setInsightsError(null);
     } catch (err) {
+      setInsightsInvalidKey(err instanceof ApiRequestError && err.code === 'ai_invalid_key');
       setInsightsError(errorMessage(err));
     } finally {
       setInsightsLoading(false);
@@ -100,6 +107,13 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
     if (!baby || !data?.score) return;
     fetchInsights(false);
   }, [baby, data?.score?.total_score]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-fetch when user updates their Gemini API key
+  useEffect(() => {
+    return subscribeGeminiKey(() => {
+      if (baby && data?.score) fetchInsights(false);
+    });
+  }, [baby, data?.score, fetchInsights]);
 
   // Initial fetch + auto-refresh every 5 minutes
   useEffect(() => {
@@ -217,7 +231,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
         )}
 
         {/* AI insights for tonight */}
-        {(insightsLoading || insightsRegenerating || insights) && (
+        {(insightsLoading || insightsRegenerating || insights || insightsNeedsKey || insightsError) && (
           <div className="rounded-lg border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-950/20 p-3">
             <div className="mb-2 flex items-center justify-between">
               <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
@@ -229,7 +243,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
                   onClick={() => fetchInsights(true)}
                   disabled={insightsRegenerating}
                   className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50"
-                  title="Re-run AI analysis"
+                  title="Re-run Gemini analysis"
                 >
                   <RefreshCw size={10} className={insightsRegenerating ? 'animate-spin' : ''} />
                   {insightsRegenerating ? 'Regenerating…' : 'Regenerate'}
@@ -241,11 +255,21 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
               <div className="flex items-center gap-2 py-1">
                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  {insightsRegenerating ? 'Regenerating insights…' : "Analyzing tonight's sleep…"}
+                  {insightsRegenerating ? 'Regenerating insights with Gemini…' : "Analyzing tonight's sleep with Gemini…"}
                 </p>
               </div>
+            ) : insightsNeedsKey ? (
+              <div className="space-y-2.5">
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  Add your Gemini API key to get live AI insights for tonight.
+                </p>
+                <GeminiKeyInput compact />
+              </div>
             ) : insightsError ? (
-              <ErrorState title="Insights failed" message={insightsError} onRetry={() => fetchInsights(true)} compact />
+              <div className="space-y-2.5">
+                <ErrorState title="Insights failed" message={insightsError} onRetry={() => fetchInsights(true)} compact />
+                {insightsInvalidKey && <GeminiKeyInput compact />}
+              </div>
             ) : insights && (
               <div className="space-y-2">
                 <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">{insights.summary}</p>

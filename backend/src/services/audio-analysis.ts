@@ -4,7 +4,6 @@ import { mkdir, readFile, unlink, stat } from 'fs/promises';
 import path from 'path';
 import { config } from '../config.js';
 
-const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
 const AUDIO_DIR = '/tmp/lunetta-audio';
 
 export interface AudioAnalysis {
@@ -105,8 +104,10 @@ export async function analyzeAudio(
   eventType: string,
   adjustedAgeMonths: number,
   profileBlock: string = '',
+  geminiApiKey?: string,
 ): Promise<AudioAnalysis> {
-  if (!config.gemini.apiKey) throw new Error('GEMINI_API_KEY is not configured (audio analysis uses Gemini because Claude does not accept audio input)');
+  const apiKey = geminiApiKey?.trim() || config.gemini.apiKey;
+  if (!apiKey) throw new Error('GEMINI_API_KEY is not configured (audio analysis uses Gemini)');
 
   console.log(`[audio] Probing ${eventType} clip for audio stream`);
   const hasAudio = await probeHasAudio(videoUrl);
@@ -165,7 +166,8 @@ Respond with ONLY valid JSON (no markdown, no code fences):
   "recommendation": "One specific thing the parent might try based on what you hear (empty string if nothing to suggest)"
 }`;
 
-    const model = genAI.getGenerativeModel({
+    const client = new GoogleGenerativeAI(apiKey);
+    const model = client.getGenerativeModel({
       model: config.gemini.model,
       generationConfig: { maxOutputTokens: 2048, responseMimeType: 'application/json' },
     });

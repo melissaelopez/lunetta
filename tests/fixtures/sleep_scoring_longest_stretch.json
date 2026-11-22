@@ -1,0 +1,421 @@
+{
+  "baby": {
+    "uid": "fixture-baby-001",
+    "birthdate": "2025-01-15",
+    "premature_weeks": 0,
+    "tz_offset": 240,
+    "bedtime_hour": 19
+  },
+  "scenarios": {
+    "brief_self_settled_wake": {
+      "description": "4-minute self-settled wake bridges adjacent sleep segments while excluding the 4 minutes awake",
+      "calendar": [
+        {
+          "uid": "seg-brief-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757989800,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-brief-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757990040,
+          "end_ts": 1758002040,
+          "duration": 12000,
+          "type": "auto_sleep",
+          "time": 1757990040
+        }
+      ],
+      "activity": {
+        "covered": true,
+        "events": [
+          { "key": "FELL_ASLEEP", "time": 1757979000 },
+          { "key": "WOKE_UP", "time": 1757989800 },
+          { "key": "FELL_ASLEEP", "time": 1757990040 },
+          { "key": "WOKE_UP", "time": 1758002040 }
+        ]
+      },
+      "expected": {
+        "total_sleep_minutes": 380,
+        "longest_stretch_minutes": 380,
+        "wake_count": 1,
+        "self_settled_wakes": 1
+      }
+    },
+    "long_self_settled_wake_over_5_min": {
+      "description": "12-minute self-settled wake (>5m) bridges segments and improves Stretch score; 20-minute parent visit breaks the stretch",
+      "calendar": [
+        {
+          "uid": "seg-long-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757991600,
+          "duration": 12600,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-long-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757992320,
+          "end_ts": 1758005520,
+          "duration": 13200,
+          "type": "auto_sleep",
+          "time": 1757992320
+        },
+        {
+          "uid": "seg-long-3",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1758006720,
+          "end_ts": 1758017520,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1758006720
+        }
+      ],
+      "activity": {
+        "covered": true,
+        "events": [
+          { "key": "FELL_ASLEEP", "time": 1757979000 },
+          { "key": "WOKE_UP", "time": 1757991600 },
+          { "key": "FELL_ASLEEP", "time": 1757992320 },
+          { "key": "WOKE_UP", "time": 1758005520 },
+          { "key": "VISIT", "time": 1758005700 },
+          { "key": "FELL_ASLEEP", "time": 1758006720 },
+          { "key": "WOKE_UP", "time": 1758017520 }
+        ]
+      },
+      "expected": {
+        "total_sleep_minutes": 610,
+        "longest_stretch_minutes": 430,
+        "onset_score": 15,
+        "wake_count": 2,
+        "self_settled_wakes": 1,
+        "parent_visit_wakes": 1
+      }
+    },
+    "all_self_settled_night": {
+      "description": "Multiple self-settled wakes all night (15m and 20m) never cause longest stretch to exceed total sleep",
+      "calendar": [
+        {
+          "uid": "seg-allss-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757989800,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-allss-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757990700,
+          "end_ts": 1758003900,
+          "duration": 13200,
+          "type": "auto_sleep",
+          "time": 1757990700
+        },
+        {
+          "uid": "seg-allss-3",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1758005100,
+          "end_ts": 1758018900,
+          "duration": 13800,
+          "type": "auto_sleep",
+          "time": 1758005100
+        }
+      ],
+      "activity": {
+        "covered": true,
+        "events": [
+          { "key": "FELL_ASLEEP", "time": 1757979000 },
+          { "key": "WOKE_UP", "time": 1757989800 },
+          { "key": "FELL_ASLEEP", "time": 1757990700 },
+          { "key": "WOKE_UP", "time": 1758003900 },
+          { "key": "FELL_ASLEEP", "time": 1758005100 },
+          { "key": "WOKE_UP", "time": 1758018900 }
+        ]
+      },
+      "expected": {
+        "total_sleep_minutes": 630,
+        "longest_stretch_minutes": 630,
+        "wake_count": 2,
+        "self_settled_wakes": 2,
+        "parent_visit_wakes": 0
+      }
+    },
+    "mixed_self_settled_and_taken_out": {
+      "description": "REMOVED wake breaks the stretch; longest stretch picks the longer combined asleep side (340m vs 250m)",
+      "calendar": [
+        {
+          "uid": "seg-mix-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757986200,
+          "duration": 7200,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-mix-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757986800,
+          "end_ts": 1757994600,
+          "duration": 7800,
+          "type": "auto_sleep",
+          "time": 1757986800
+        },
+        {
+          "uid": "seg-mix-3",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757996100,
+          "end_ts": 1758006900,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757996100
+        },
+        {
+          "uid": "seg-mix-4",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1758007380,
+          "end_ts": 1758016980,
+          "duration": 9600,
+          "type": "auto_sleep",
+          "time": 1758007380
+        }
+      ],
+      "activity": {
+        "covered": true,
+        "events": [
+          { "key": "FELL_ASLEEP", "time": 1757979000 },
+          { "key": "WOKE_UP", "time": 1757986200 },
+          { "key": "FELL_ASLEEP", "time": 1757986800 },
+          { "key": "WOKE_UP", "time": 1757994600 },
+          { "key": "REMOVED", "time": 1757994780 },
+          { "key": "FELL_ASLEEP", "time": 1757996100 },
+          { "key": "WOKE_UP", "time": 1758006900 },
+          { "key": "FELL_ASLEEP", "time": 1758007380 }
+        ]
+      },
+      "expected": {
+        "total_sleep_minutes": 590,
+        "longest_stretch_minutes": 340,
+        "wake_count": 3,
+        "self_settled_wakes": 2,
+        "parent_visit_wakes": 1
+      }
+    },
+    "uncovered_activity_breaks_stretch": {
+      "description": "When camera activity is not covered, wakes are classified as unknown and break the longest stretch",
+      "calendar": [
+        {
+          "uid": "seg-unk-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757989800,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-unk-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757990280,
+          "end_ts": 1758003480,
+          "duration": 13200,
+          "type": "auto_sleep",
+          "time": 1757990280
+        }
+      ],
+      "activity": {
+        "covered": false,
+        "events": []
+      },
+      "expected": {
+        "total_sleep_minutes": 400,
+        "longest_stretch_minutes": 220,
+        "wake_count": 1,
+        "unknown_wakes": 1
+      }
+    },
+    "parent_wake_overrides": {
+      "description": "Parent wake overrides control which wakes bridge vs break stretches",
+      "calendar": [
+        {
+          "uid": "seg-ovr-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757989800,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-ovr-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757990700,
+          "end_ts": 1758002700,
+          "duration": 12000,
+          "type": "auto_sleep",
+          "time": 1757990700
+        },
+        {
+          "uid": "seg-ovr-3",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1758003300,
+          "end_ts": 1758012300,
+          "duration": 9000,
+          "type": "auto_sleep",
+          "time": 1758003300
+        }
+      ],
+      "activity": {
+        "covered": true,
+        "events": [
+          { "key": "FELL_ASLEEP", "time": 1757979000 },
+          { "key": "VISIT", "time": 1757989920 },
+          { "key": "FELL_ASLEEP", "time": 1757990700 },
+          { "key": "WOKE_UP", "time": 1758002700 },
+          { "key": "FELL_ASLEEP", "time": 1758003300 }
+        ]
+      },
+      "annotation": {
+        "session_id": "fixture-baby-001:2025-09-15",
+        "baby_uid": "fixture-baby-001",
+        "wake_overrides": {
+          "1757989800": "self_settled",
+          "1758002700": "parent_visit"
+        },
+        "updated_at": 1758020000000
+      },
+      "expected_without_override": {
+        "longest_stretch_minutes": 350
+      },
+      "expected_with_override": {
+        "longest_stretch_minutes": 380
+      }
+    },
+    "overlapping_and_annotated_segments": {
+      "description": "Contained/overlapping sleep segment is merged without double-counting, and manual night window edits recompute cleanly",
+      "calendar": [
+        {
+          "uid": "seg-ovl-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757991000,
+          "duration": 12000,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-ovl-contained",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757982600,
+          "end_ts": 1757985000,
+          "duration": 2400,
+          "type": "auto_sleep",
+          "time": 1757982600
+        },
+        {
+          "uid": "seg-ovl-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757991600,
+          "end_ts": 1758002400,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757991600
+        }
+      ],
+      "activity": {
+        "covered": true,
+        "events": [
+          { "key": "FELL_ASLEEP", "time": 1757979000 },
+          { "key": "WOKE_UP", "time": 1757991000 },
+          { "key": "FELL_ASLEEP", "time": 1757991600 }
+        ]
+      },
+      "annotation": {
+        "session_id": "fixture-baby-001:2025-09-15",
+        "baby_uid": "fixture-baby-001",
+        "custom_start_time": 1757977200,
+        "custom_end_time": 1758000600,
+        "updated_at": 1758020000000
+      },
+      "expected_raw": {
+        "total_sleep_minutes": 380,
+        "longest_stretch_minutes": 380,
+        "wake_count": 1
+      },
+      "expected_annotated": {
+        "total_sleep_minutes": 380,
+        "longest_stretch_minutes": 380,
+        "wake_count": 1
+      }
+    },
+    "false_wake_corrected_to_asleep": {
+      "description": "Parent corrects a 20m Nanit false wake to 'asleep': counted as sleep (adds 20m), removed from wake_count, and merged into longest stretch while a 10m self-settled wake still excludes its 10m awake time",
+      "calendar": [
+        {
+          "uid": "seg-fw-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757989800,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-fw-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757991000,
+          "end_ts": 1758003000,
+          "duration": 12000,
+          "type": "auto_sleep",
+          "time": 1757991000
+        },
+        {
+          "uid": "seg-fw-3",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1758003600,
+          "end_ts": 1758014400,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1758003600
+        }
+      ],
+      "activity": {
+        "covered": true,
+        "events": [
+          { "key": "FELL_ASLEEP", "time": 1757979000 },
+          { "key": "VISIT", "time": 1757989920 },
+          { "key": "FELL_ASLEEP", "time": 1757991000 },
+          { "key": "WOKE_UP", "time": 1758003000 },
+          { "key": "FELL_ASLEEP", "time": 1758003600 }
+        ]
+      },
+      "annotation": {
+        "session_id": "fixture-baby-001:2025-09-15",
+        "baby_uid": "fixture-baby-001",
+        "wake_overrides": {
+          "1757989800": "asleep"
+        },
+        "updated_at": 1758020000000
+      },
+      "expected_without_override": {
+        "total_sleep_minutes": 560,
+        "longest_stretch_minutes": 380,
+        "wake_count": 2
+      },
+      "expected_with_override": {
+        "total_sleep_minutes": 580,
+        "longest_stretch_minutes": 580,
+        "wake_count": 1,
+        "self_settled_wakes": 1,
+        "parent_visit_wakes": 0
+      }
+    }
+  }
+}

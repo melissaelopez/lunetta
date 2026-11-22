@@ -1,22 +1,22 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-export type AiProvider = 'anthropic' | 'openai';
+export type AiProvider = 'anthropic' | 'openai' | 'gemini';
 export type Effort = 'none' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 
 function parseAiProvider(raw: string | undefined): AiProvider {
   const provider = raw?.trim().toLowerCase() || 'anthropic';
-  if (provider !== 'anthropic' && provider !== 'openai') {
-    throw new Error(`Invalid BLAIR_AI_PROVIDER "${raw}". Use "anthropic" or "openai".`);
+  if (provider !== 'anthropic' && provider !== 'openai' && provider !== 'gemini') {
+    throw new Error(`Invalid BLAIR_AI_PROVIDER "${raw}". Use "anthropic", "openai", or "gemini".`);
   }
   return provider;
 }
 
 function parseEffort(raw: string | undefined, provider: AiProvider): Effort {
   const effort = raw?.trim().toLowerCase() || 'medium';
-  const allowed: Effort[] = provider === 'openai'
-    ? ['none', 'low', 'medium', 'high', 'xhigh', 'max']
-    : ['low', 'medium', 'high', 'xhigh', 'max'];
+  const allowed: Effort[] = provider === 'anthropic'
+    ? ['low', 'medium', 'high', 'xhigh', 'max']
+    : ['none', 'low', 'medium', 'high', 'xhigh', 'max'];
   if (!allowed.includes(effort as Effort)) {
     throw new Error(`Invalid BLAIR_AI_EFFORT "${raw}" for ${provider}. Allowed values: ${allowed.join(', ')}.`);
   }
@@ -31,18 +31,32 @@ export interface AiSettings {
 
 export function resolveAiSettings(providerValue?: string, modelValue?: string, effortValue?: string): AiSettings {
   const provider = parseAiProvider(providerValue);
-  const model = modelValue?.trim() || (provider === 'openai' ? 'gpt-6-luna' : 'claude-opus-5');
-  if (provider === 'openai' && model.startsWith('claude-')) {
-    throw new Error(`BLAIR_AI_MODEL "${model}" is a Claude model, but BLAIR_AI_PROVIDER is "openai".`);
+  const defaultModel =
+    provider === 'openai'
+      ? 'gpt-6-luna'
+      : provider === 'gemini'
+        ? (process.env.GEMINI_MODEL || 'gemini-flash-latest')
+        : 'claude-opus-5';
+  const model = modelValue?.trim() || defaultModel;
+  if (provider !== 'anthropic' && model.startsWith('claude-')) {
+    throw new Error(`BLAIR_AI_MODEL "${model}" is a Claude model, but BLAIR_AI_PROVIDER is "${provider}".`);
   }
-  if (provider === 'anthropic' && model.startsWith('gpt-')) {
-    throw new Error(`BLAIR_AI_MODEL "${model}" is an OpenAI model, but BLAIR_AI_PROVIDER is "anthropic".`);
+  if (provider !== 'openai' && model.startsWith('gpt-')) {
+    throw new Error(`BLAIR_AI_MODEL "${model}" is an OpenAI model, but BLAIR_AI_PROVIDER is "${provider}".`);
+  }
+  if (provider !== 'gemini' && model.startsWith('gemini-')) {
+    throw new Error(`BLAIR_AI_MODEL "${model}" is a Gemini model, but BLAIR_AI_PROVIDER is "${provider}".`);
   }
   return { provider, model, effort: parseEffort(effortValue, provider) };
 }
 
-export function hasProviderApiKey(provider: AiProvider, keys: { anthropic?: string; openai?: string }): boolean {
-  return provider === 'openai' ? !!keys.openai : !!keys.anthropic;
+export function hasProviderApiKey(
+  provider: AiProvider,
+  keys: { anthropic?: string; openai?: string; gemini?: string },
+): boolean {
+  if (provider === 'openai') return !!keys.openai;
+  if (provider === 'gemini') return !!keys.gemini;
+  return !!keys.anthropic;
 }
 
 export const config = {

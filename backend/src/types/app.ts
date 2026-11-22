@@ -11,6 +11,12 @@ export interface SleepScoreBreakdown {
     target_sleep_minutes: number;
     wake_count: number;
     longest_stretch_minutes: number;
+    /** Exact start/end timestamps (unix seconds) and asleep duration of the longest stretch. */
+    longest_stretch?: {
+      start: number;
+      end: number;
+      duration_minutes: number;
+    };
     bedtime: string;
     wake_time: string;
     custom_bedtime?: string;
@@ -31,8 +37,8 @@ export interface SleepScoreBreakdown {
     ideal_bedtime_range: [number, number];
     excess_wake_penalty: number;
     long_wake_penalty: number;
-    /** Self-settled wakes this short don't break the longest stretch. */
-    brief_wake_minutes: number;
+    /** Deprecated: all self-settled wakes are now excluded from breaking the longest stretch. */
+    brief_wake_minutes?: number;
     self_settled_wakes: number;
     parent_visit_wakes: number;
     unknown_wakes: number;

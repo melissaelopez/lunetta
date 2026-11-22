@@ -31,7 +31,7 @@ export interface SleepAnnotation {
   updated_at: number;
 }
 
-export type WakeResponse = 'self_settled' | 'parent_visit' | 'taken_out' | 'unknown';
+export type WakeResponse = 'self_settled' | 'parent_visit' | 'taken_out' | 'asleep' | 'unknown';
 
 /** A night wake and whether a parent went in (from Nanit's camera, or the parent's correction). */
 export interface WakeDetail {
@@ -60,6 +60,11 @@ export interface SleepScoreBreakdown {
     target_sleep_minutes: number;
     wake_count: number;
     longest_stretch_minutes: number;
+    longest_stretch?: {
+      start: number;
+      end: number;
+      duration_minutes: number;
+    };
     bedtime: string;
     wake_time: string;
     custom_bedtime?: string;

@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sparkles, CheckCircle, AlertTriangle, TrendingUp, Lightbulb, RefreshCw } from 'lucide-react';
+import { Sparkles, CheckCircle, AlertTriangle, TrendingUp, Lightbulb, RefreshCw, KeyRound } from 'lucide-react';
 import { Card } from '../common/Card';
+import { GeminiKeyInput } from '../common/GeminiKeyInput';
 import { VideoAnalysisPanel } from './VideoAnalysisPanel';
 import * as api from '../../services/api';
-import type { NightInsights } from '../../services/api';
+import { ApiRequestError, type NightInsights } from '../../services/api';
+import { subscribeGeminiKey } from '../../utils/geminiKey';
 import type { Baby } from '../../types';
 
 interface Props {
@@ -21,6 +23,9 @@ const insightsCache = new Map<string, NightInsights>();
 
 export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, hasSleepData }: Props) {
   const [insights, setInsights] = useState<NightInsights | null>(null);
+  const [needsApiKey, setNeedsApiKey] = useState(false);
+  const [invalidKey, setInvalidKey] = useState(false);
+  const [showKeyPanel, setShowKeyPanel] = useState(false);
   const [loading, setLoading] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +33,7 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
   const fetchInsights = useCallback(async (force = false) => {
     if (!baby || !hasSleepData || !nightStart) {
       setInsights(null);
+      setNeedsApiKey(false);
       return;
     }
 
@@ -37,6 +43,8 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
       const cached = insightsCache.get(cacheKey);
       if (cached) {
         setInsights(cached);
+        setNeedsApiKey(false);
+        setInvalidKey(false);
         return;
       }
       setLoading(true);
@@ -46,13 +54,25 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
     }
 
     setError(null);
+    setInvalidKey(false);
 
     try {
       const result = await api.getInsights(baby.uid, nightStart, nightEnd, baby.birthdate, prematureWeeks, bedtimeHour, wakeHour, force);
-      setInsights(result);
-      insightsCache.set(cacheKey, result);
-    } catch (err: any) {
-      setError(err.message);
+      if (result.needsApiKey) {
+        setInsights(null);
+        setNeedsApiKey(true);
+        return;
+      }
+      setNeedsApiKey(false);
+      setInsights(result.insights);
+      if (result.insights) {
+        insightsCache.set(cacheKey, result.insights);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to generate insights';
+      const isBadKey = err instanceof ApiRequestError && err.code === 'ai_invalid_key';
+      setInvalidKey(isBadKey);
+      setError(message);
     } finally {
       setLoading(false);
       setRegenerating(false);
@@ -63,6 +83,15 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
     fetchInsights(false);
   }, [fetchInsights]);
 
+  // Re-fetch automatically when the user adds, updates, or clears their Gemini API key
+  useEffect(() => {
+    return subscribeGeminiKey(() => {
+      insightsCache.clear();
+      setShowKeyPanel(false);
+      fetchInsights(false);
+    });
+  }, [fetchInsights]);
+
   if (!hasSleepData) return null;
 
   if (loading) {
@@ -70,7 +99,24 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
       <Card title="AI Insights" className="col-span-full">
         <div className="flex items-center gap-3 py-6">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-          <p className="text-sm text-slate-600 dark:text-slate-400">Analyzing sleep data...</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Analyzing sleep data with Gemini…</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (needsApiKey) {
+    return (
+      <Card
+        title="AI Insights"
+        className="col-span-full"
+        action={<Sparkles size={16} className="text-indigo-600 dark:text-indigo-400" />}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            AI Insights are powered by Google Gemini. Enter your own Gemini API key to analyze this night&apos;s sleep and camera activity.
+          </p>
+          <GeminiKeyInput compact />
         </div>
       </Card>
     );
@@ -78,8 +124,23 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
 
   if (error) {
     return (
-      <Card title="AI Insights" className="col-span-full">
-        <p className="text-sm text-red-600 dark:text-red-400">Failed to generate insights: {error}</p>
+      <Card
+        title="AI Insights"
+        className="col-span-full"
+        action={
+          <button
+            onClick={() => fetchInsights(true)}
+            className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+          >
+            <RefreshCw size={12} />
+            Retry
+          </button>
+        }
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>
+          {invalidKey && <GeminiKeyInput compact />}
+        </div>
       </Card>
     );
   }
@@ -91,12 +152,20 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
       title="AI Insights"
       className="col-span-full"
       action={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setShowKeyPanel(v => !v)}
+            className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            title="Manage Gemini API key"
+          >
+            <KeyRound size={12} />
+            <span className="hidden sm:inline">Gemini key</span>
+          </button>
           <button
             onClick={() => fetchInsights(true)}
             disabled={regenerating}
             className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50"
-            title="Re-run AI analysis"
+            title="Re-run Gemini analysis"
           >
             <RefreshCw size={12} className={regenerating ? 'animate-spin' : ''} />
             {regenerating ? 'Regenerating…' : 'Regenerate'}
@@ -105,10 +174,15 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
         </div>
       }
     >
+      {showKeyPanel && (
+        <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/50">
+          <GeminiKeyInput compact onSaved={() => setShowKeyPanel(false)} />
+        </div>
+      )}
       {regenerating ? (
         <div className="flex items-center gap-3 py-6">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-          <p className="text-sm text-slate-600 dark:text-slate-400">Regenerating insights…</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Regenerating insights with Gemini…</p>
         </div>
       ) : (
         <div className="space-y-4">
