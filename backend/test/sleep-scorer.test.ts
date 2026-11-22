@@ -17,6 +17,7 @@ interface FixtureFile {
   };
   scenarios: Record<string, {
     description: string;
+    birthdate?: string;
     calendar: NanitCalendarEntry[];
     activity: WindowActivity;
     annotation?: SleepAnnotation;
@@ -25,6 +26,9 @@ interface FixtureFile {
     expected_with_override?: Record<string, number>;
     expected_raw?: Record<string, number>;
     expected_annotated?: Record<string, number>;
+    expected_default?: Record<string, number>;
+    expected_custom_45?: Record<string, number>;
+    expected_custom_60?: Record<string, number>;
   }>;
 }
 
@@ -177,4 +181,31 @@ test('correcting an awake block to Baby asleep adds its time to sleep and longes
   });
   // Corrected wake remains present in details.wakes so the parent can inspect or revert it on the timeline
   assert.equal(withAsleep.details.wakes.find(w => w.start === 1757989800)?.response, 'asleep');
+});
+
+test('custom normalWakeMinutes overrides age default long-wake penalty for newborn feeds', () => {
+  const s = fixture.scenarios.custom_normal_wake_minutes_newborn;
+  const [night] = buildNightSummaries(s.calendar);
+  const base = {
+    ...baseScoreOpts(s.activity),
+    birthdate: s.birthdate!,
+  };
+
+  const withDefault = scoreNight(night, base);
+  assert.equal(withDefault.expectations.normal_wake_minutes, s.expected_default!.normal_wake_minutes);
+  assert.equal(withDefault.expectations.normal_wake_minutes_custom, false);
+  assert.equal(withDefault.expectations.long_wake_penalty, s.expected_default!.long_wake_penalty);
+  assert.equal(withDefault.continuity_score, s.expected_default!.continuity_score);
+
+  const withCustom45 = scoreNight(night, { ...base, normalWakeMinutes: 45 });
+  assert.equal(withCustom45.expectations.normal_wake_minutes, s.expected_custom_45!.normal_wake_minutes);
+  assert.equal(withCustom45.expectations.normal_wake_minutes_custom, true);
+  assert.equal(withCustom45.expectations.long_wake_penalty, s.expected_custom_45!.long_wake_penalty);
+  assert.equal(withCustom45.continuity_score, s.expected_custom_45!.continuity_score);
+
+  const withCustom60 = scoreNight(night, { ...base, normalWakeMinutes: 60 });
+  assert.equal(withCustom60.expectations.normal_wake_minutes, s.expected_custom_60!.normal_wake_minutes);
+  assert.equal(withCustom60.expectations.normal_wake_minutes_custom, true);
+  assert.equal(withCustom60.expectations.long_wake_penalty, s.expected_custom_60!.long_wake_penalty);
+  assert.equal(withCustom60.continuity_score, s.expected_custom_60!.continuity_score);
 });

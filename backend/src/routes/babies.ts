@@ -56,6 +56,7 @@ router.put('/:babyUid/settings', requireToken, async (req, res) => {
       bedtime_hour: num(b.bedtime_hour, 0, 23),
       wake_hour: num(b.wake_hour, 0, 23),
       premature_weeks: num(b.premature_weeks, 0, 16),
+      normal_wake_minutes: b.normal_wake_minutes === null ? null : num(b.normal_wake_minutes, 5, 90),
       milestones: { ...DEFAULT_PROFILE.milestones, ...milestones },
       sleepwear: SLEEPWEAR.includes(b.sleepwear) ? b.sleepwear : undefined,
       pacifier: typeof b.pacifier === 'boolean' ? b.pacifier : undefined,

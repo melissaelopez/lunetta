@@ -42,6 +42,16 @@ function ageExpectationSummary(adjMonths: number): string {
   return '0 wakes expected, sleeping through the night';
 }
 
+// Default normal night wake duration (minutes) matching backend AGE_EXPECTATIONS
+function defaultNormalWakeMinutes(adjMonths: number): number {
+  if (adjMonths < 1) return 30;
+  if (adjMonths < 2) return 25;
+  if (adjMonths < 4) return 20;
+  if (adjMonths < 6) return 15;
+  if (adjMonths < 12) return 10;
+  return 5;
+}
+
 const MILESTONE_OPTIONS: { key: keyof BabyMilestones; label: string; hint?: string }[] = [
   { key: 'rolls_back_to_belly', label: 'Rolls from back to belly' },
   { key: 'rolls_belly_to_back', label: 'Rolls from belly to back' },
@@ -54,6 +64,8 @@ export function SettingsPanel({ open, onClose, settings, onUpdate, birthdate, na
   if (!open) return null;
 
   const adjAge = birthdate ? adjustedAgeMonths(birthdate, settings.prematureWeeks) : null;
+  const ageDefaultWakeMin = adjAge !== null ? defaultNormalWakeMinutes(adjAge) : 20;
+  const effectiveWakeMin = settings.normalWakeMinutes ?? ageDefaultWakeMin;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 pt-12 pb-12" onClick={onClose}>
@@ -190,6 +202,45 @@ export function SettingsPanel({ open, onClose, settings, onUpdate, birthdate, na
               <p className="text-xs text-indigo-700 dark:text-indigo-300">
                 Night window: <strong>{hourLabel(settings.bedtimeHour)}</strong> to{' '}
                 <strong>{hourLabel(settings.wakeHour + 4)}</strong> next day
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Normal wake length
+                </label>
+                {settings.normalWakeMinutes !== null && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdate({ normalWakeMinutes: null })}
+                    className="text-xs text-indigo-600 hover:underline dark:text-indigo-400"
+                  >
+                    Use age default ({ageDefaultWakeMin}m)
+                  </button>
+                )}
+              </div>
+              <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                Wakes up to this length won&apos;t reduce your Continuity score. Raise this if night feeds include burping or holding baby upright afterward.
+              </p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={5}
+                  max={90}
+                  step={5}
+                  value={effectiveWakeMin}
+                  onChange={e => onUpdate({ normalWakeMinutes: Number(e.target.value) })}
+                  className="flex-1 accent-indigo-500"
+                />
+                <span className="w-24 text-right text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  {effectiveWakeMin} min
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                {settings.normalWakeMinutes === null
+                  ? `Using age default (${ageDefaultWakeMin} min)`
+                  : `Custom override (age default is ${ageDefaultWakeMin} min)`}
               </p>
             </div>
           </div>

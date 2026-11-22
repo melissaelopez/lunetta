@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as nanit from '../services/nanit-client.js';
 import { getAdjustedAgeMonths } from '../services/sleep-scorer.js';
-import { generateNightInsights } from '../services/ai-insights.js';
+import { chatAboutNight, generateNightInsights, type NightInsights } from '../services/ai-insights.js';
 import { loadScoredNights, scoreWindow } from '../services/night-history.js';
 import { localDateStr, localHour } from '../services/night-windows.js';
 import { requireToken } from '../middleware/auth.js';
@@ -146,6 +146,95 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
     res.json({ insights, in_progress: isInProgress, provider: 'gemini', using_user_key: !!userGeminiKey });
   } catch (err: any) {
     handleRouteError(res, err, 'insights_failed');
+  }
+});
+
+// Follow-up chat with Gemini grounded in this night's full (corrected) sleep context
+router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
+  try {
+    const token = (req as any).nanitToken;
+    const babyUid = String(req.params.babyUid);
+    const body = req.body ?? {};
+    const start = parseInt(String(body.start));
+    const end = parseInt(String(body.end));
+    const birthdate = String(body.birthdate || '');
+    const prematureWeeks = parseInt(String(body.premature_weeks)) || 0;
+    const bedtimeHour = parseInt(String(body.bedtime_hour)) || 19;
+    const wakeHour = parseInt(String(body.wake_hour)) || 8;
+    const tzOffset = parseInt(String(body.tz_offset)) || 0;
+    const rawMessages = Array.isArray(body.messages) ? body.messages : [];
+    const existingInsights = (body.current_insights ?? null) as NightInsights | null;
+
+    if (!start || !end || !birthdate) {
+      res.status(400).json({ error: 'bad_request', message: 'start, end, and birthdate required' });
+      return;
+    }
+
+    const messages = rawMessages
+      .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim().length > 0)
+      .slice(-20)
+      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content.trim().slice(0, 4000) }));
+
+    if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+      res.status(400).json({ error: 'bad_request', message: 'A user message is required' });
+      return;
+    }
+
+    // Optional per-request Gemini API key from client header. Never log, cache, or persist it.
+    const userGeminiKey = req.header('x-gemini-api-key')?.trim() || undefined;
+    if (!isGeminiConfigured(userGeminiKey)) {
+      res.json({ reply: null, needs_api_key: true, provider: 'gemini' });
+      return;
+    }
+
+    const currentDate = localDateStr(start, tzOffset);
+    const rangeBase = { token, babyUid, birthdate, prematureWeeks, bedtimeHour, wakeHour, tzOffset };
+
+    const current = await scoreWindow(rangeBase, { date: currentDate, start, end });
+    if (!current) {
+      res.status(404).json({ error: 'no_data', message: 'No sleep data found for this night.' });
+      return;
+    }
+
+    const isInProgress = nightIsInProgress(end, current.night.night_end, wakeHour, tzOffset);
+    const profile = await getBabyProfile(babyUid);
+    const adjAge = getAdjustedAgeMonths(birthdate, prematureWeeks, new Date(current.night.night_start * 1000));
+    const napExp = napExpectations(adjAge);
+
+    const [recent, dayBlock] = await Promise.all([
+      loadScoredNights({ ...rangeBase, days: 7, beforeDate: currentDate }),
+      loadDays(rangeBase, [currentDate], napExp)
+        .then(d => dayPromptBlock(d.days[0], napExp, tzOffset))
+        .catch(err => { console.log(`[insights-chat] daytime context failed: ${err.message}`); return ''; }),
+    ]);
+
+    if (!userGeminiKey) {
+      await consumeAiBudget(babyUid, 'insights_chat');
+    }
+
+    const reply = await chatAboutNight({
+      currentNight: { date: currentDate, score: current.score, night: current.night },
+      recentNights: recent.map(n => ({ date: n.date, score: n.score, night: n.night })),
+      adjustedAgeMonths: adjAge,
+      prematureWeeks,
+      tzOffset,
+      isInProgress,
+      profileBlock: profilePromptBlock(profile),
+      dayBlock,
+      annotationNotes: current.annotation?.notes,
+      existingInsights,
+      messages,
+      geminiApiKey: userGeminiKey,
+    });
+
+    if (!reply) {
+      res.json({ reply: null, needs_api_key: true, provider: 'gemini' });
+      return;
+    }
+
+    res.json({ reply, provider: 'gemini', using_user_key: !!userGeminiKey });
+  } catch (err: any) {
+    handleRouteError(res, err, 'insights_chat_failed');
   }
 });
 

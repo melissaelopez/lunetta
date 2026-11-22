@@ -50,6 +50,7 @@ interface AnalysisResult {
 const EVENTS_PER_PAGE = 10;
 
 export function VideoEventsCard({ baby, prematureWeeks, nightStart, nightEnd, nightLabel }: Props) {
+  const [isOpen, setIsOpen] = useState(true);
   const [allEvents, setAllEvents] = useState<NanitEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState<string | null>(null);
@@ -160,10 +161,46 @@ export function VideoEventsCard({ baby, prematureWeeks, nightStart, nightEnd, ni
   };
 
   const windowMode = !!(nightStart && nightEnd);
+  const titleSuffix = windowMode && nightLabel ? ` — ${nightLabel}` : '';
+
+  if (!isOpen) {
+    return (
+      <div className="col-span-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          aria-expanded={false}
+          className="flex w-full items-center justify-between rounded-2xl px-5 py-3.5 text-left transition hover:bg-slate-50/70 dark:hover:bg-slate-700/30"
+        >
+          <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <Video size={15} className="text-violet-600 dark:text-violet-400" />
+            {loading || error ? `Video Events${titleSuffix}` : `Video Events (${events.length})${titleSuffix}`}
+          </span>
+          <span className="flex items-center gap-1 text-xs font-medium text-slate-400 dark:text-slate-500">
+            Show
+            <ChevronDown size={15} />
+          </span>
+        </button>
+      </div>
+    );
+  }
+
+  const collapseAction = (
+    <button
+      type="button"
+      onClick={() => setIsOpen(false)}
+      aria-expanded={true}
+      className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+    >
+      Hide
+      <ChevronUp size={15} />
+      <Video size={15} className="text-violet-600 dark:text-violet-400" />
+    </button>
+  );
 
   if (loading) {
     return (
-      <Card title="Video Events">
+      <Card title={`Video Events${titleSuffix}`} className="col-span-full" action={collapseAction}>
         <div className="flex h-20 items-center justify-center">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
         </div>
@@ -173,19 +210,17 @@ export function VideoEventsCard({ baby, prematureWeeks, nightStart, nightEnd, ni
 
   if (error) {
     return (
-      <Card title="Video Events" className="col-span-full" action={<Video size={16} className="text-violet-600 dark:text-violet-400" />}>
+      <Card title={`Video Events${titleSuffix}`} className="col-span-full" action={collapseAction}>
         <ErrorState message={error} onRetry={() => setAttempt(a => a + 1)} compact />
       </Card>
     );
   }
 
-  const titleSuffix = windowMode && nightLabel ? ` — ${nightLabel}` : '';
-
   return (
     <Card
       title={`Video Events (${events.length})${titleSuffix}`}
       className="col-span-full"
-      action={<Video size={16} className="text-violet-600 dark:text-violet-400" />}
+      action={collapseAction}
     >
       {events.length === 0 ? (
         <p className="py-4 text-center text-sm text-slate-600 dark:text-slate-400">

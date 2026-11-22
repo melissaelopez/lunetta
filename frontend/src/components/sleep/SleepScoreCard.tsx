@@ -9,9 +9,10 @@ import type { SleepScoreBreakdown } from '../../types';
 interface Props {
   score: SleepScoreBreakdown | null;
   loading?: boolean;
+  onOpenSettings?: () => void;
 }
 
-export function SleepScoreCard({ score, loading }: Props) {
+export function SleepScoreCard({ score, loading, onOpenSettings }: Props) {
   const [showWhy, setShowWhy] = useState(false);
   if (loading) {
     return (
@@ -55,7 +56,9 @@ export function SleepScoreCard({ score, loading }: Props) {
       note: `${d.wake_count} wake${d.wake_count === 1 ? '' : 's'}` +
         (hasVisitData ? ` (${settled} self-settled, ${visited} with a parent visit${x.unknown_wakes ? `, ${x.unknown_wakes} unknown` : ''})` : '') +
         `, ${x.expected_wakes} needing a parent expected at this age (−${x.excess_wake_penalty})` +
-        (x.long_wake_penalty > 0 ? `; wakes longer than ${x.normal_wake_minutes} min cost −${x.long_wake_penalty}` : `; none ran past ${x.normal_wake_minutes} min`),
+        (x.long_wake_penalty > 0
+          ? `; wakes longer than ${x.normal_wake_minutes} min${x.normal_wake_minutes_custom ? ' (your setting)' : ''} cost −${x.long_wake_penalty}`
+          : `; none ran past ${x.normal_wake_minutes} min${x.normal_wake_minutes_custom ? ' (your setting)' : ''}`),
     },
     {
       label: 'Stretch',
@@ -146,7 +149,19 @@ export function SleepScoreCard({ score, loading }: Props) {
                 </li>
               ))}
               <li className="pt-1 text-[10px] text-slate-400">
-                Expectations come from an age table (adjusted for prematurity) and your bedtime setting. Expected wakes at this age are free; only extra or unusually long ones cost points. Wakes the baby settled from without a parent visit (Nanit's camera sees you approach the crib) never count as extra, and running long costs half.
+                Expectations come from an age table (adjusted for prematurity) and your settings. Expected wakes at this age are free; only extra or unusually long ones cost points. Wakes the baby settled from without a parent visit (Nanit&apos;s camera sees you approach the crib) never count as extra, and running long costs half. Need more time for night feeds or holding baby upright? Adjust <strong>Normal wake length</strong> in{' '}
+                {onOpenSettings ? (
+                  <button
+                    type="button"
+                    onClick={onOpenSettings}
+                    className="font-medium text-indigo-600 underline hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  >
+                    Settings
+                  </button>
+                ) : (
+                  <span>Settings (gear icon)</span>
+                )}
+                .
               </li>
             </ul>
           )}

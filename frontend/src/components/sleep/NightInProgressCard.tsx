@@ -3,6 +3,7 @@ import { Moon, Activity, RefreshCw, TrendingUp, Sparkles, CheckCircle, AlertTria
 import { Card } from '../common/Card';
 import { ErrorState } from '../common/ErrorState';
 import { GeminiKeyInput } from '../common/GeminiKeyInput';
+import { NightInsightsChat } from './NightInsightsChat';
 import { errorMessage } from '../../utils/errors';
 import { VideoAnalysisPanel } from './VideoAnalysisPanel';
 import * as api from '../../services/api';
@@ -17,6 +18,7 @@ interface Props {
   prematureWeeks: number;
   bedtimeHour: number;
   wakeHour: number;
+  normalWakeMinutes?: number | null;
 }
 
 interface LiveNightData {
@@ -27,7 +29,7 @@ interface LiveNightData {
   lastEventTime: number | null;
 }
 
-export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour }: Props) {
+export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, normalWakeMinutes }: Props) {
   const [data, setData] = useState<LiveNightData | null>(null);
   const [insights, setInsights] = useState<NightInsights | null>(null);
   const [insightsNeedsKey, setInsightsNeedsKey] = useState(false);
@@ -44,7 +46,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
 
     try {
       const [scores, msgs] = await Promise.all([
-        api.getSleepScore(baby.uid, nightStart, nightEnd, baby.birthdate, prematureWeeks, bedtimeHour),
+        api.getSleepScore(baby.uid, nightStart, nightEnd, baby.birthdate, prematureWeeks, bedtimeHour, normalWakeMinutes),
         api.getEvents(baby.uid, undefined, 50).catch(() => []),
       ]);
       setError(null);
@@ -78,7 +80,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
     } finally {
       setLoading(false);
     }
-  }, [baby, nightStart, nightEnd, prematureWeeks, bedtimeHour]);
+  }, [baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, normalWakeMinutes]);
 
   const fetchInsights = useCallback(async (force = false) => {
     if (!baby) return;
@@ -313,6 +315,17 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
                     <p className="text-[10px] leading-relaxed text-indigo-800 dark:text-indigo-300">{insights.tip}</p>
                   </div>
                 )}
+
+                <NightInsightsChat
+                  baby={baby}
+                  nightStart={nightStart}
+                  nightEnd={nightEnd}
+                  prematureWeeks={prematureWeeks}
+                  bedtimeHour={bedtimeHour}
+                  wakeHour={wakeHour}
+                  currentInsights={insights}
+                  compact
+                />
               </div>
             )}
           </div>

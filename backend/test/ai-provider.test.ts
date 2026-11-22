@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { hasProviderApiKey, resolveAiSettings } from '../src/config.js';
 import { generateClaudeStructured } from '../src/services/claude.js';
 import { generateOpenAIStructured } from '../src/services/openai-adapter.js';
-import { generateGeminiStructured, sanitizeGeminiError, zodToGeminiSchema } from '../src/services/gemini-adapter.js';
+import { generateGeminiChat, generateGeminiStructured, sanitizeGeminiError, zodToGeminiSchema } from '../src/services/gemini-adapter.js';
 import { aiApiErrorResponse } from '../src/services/ai-api-error.js';
 import { handleRouteError } from '../src/middleware/errorHandler.js';
 
@@ -311,4 +311,48 @@ test('Gemini errors redact API keys and never trigger Nanit 401 logout', () => {
   );
   assert.equal(rateLimited429.status, 429);
   assert.equal((rateLimited429.body as any).error, 'ai_error');
+});
+
+test('Gemini chat maps user and assistant turns cleanly with system context', async () => {
+  let capturedModelParams: any;
+  let capturedRequest: any;
+  const mockClient = {
+    getGenerativeModel(modelParams: any) {
+      capturedModelParams = modelParams;
+      return {
+        async generateContent(req: any) {
+          capturedRequest = req;
+          return {
+            response: {
+              candidates: [{ finishReason: 'STOP' }],
+              usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 25 },
+              text: () => 'Her 5h 30m longest stretch was right after bedtime.',
+            },
+          };
+        },
+      };
+    },
+  } as unknown as GoogleGenerativeAI;
+
+  const reply = await generateGeminiChat(
+    {
+      label: 'insights-chat',
+      system: 'NIGHT CONTEXT WITH CORRECTIONS',
+      apiKeyOverride: 'AIzaTestFakeUserKey1234567890',
+      messages: [
+        { role: 'user', content: 'How did her longest stretch look?' },
+        { role: 'assistant', content: 'It was 5h 30m.' },
+        { role: 'user', content: 'When did it happen?' },
+      ],
+    },
+    mockClient,
+  );
+
+  assert.equal(reply, 'Her 5h 30m longest stretch was right after bedtime.');
+  assert.equal(capturedModelParams.systemInstruction, 'NIGHT CONTEXT WITH CORRECTIONS');
+  assert.deepEqual(capturedRequest.contents, [
+    { role: 'user', parts: [{ text: 'How did her longest stretch look?' }] },
+    { role: 'model', parts: [{ text: 'It was 5h 30m.' }] },
+    { role: 'user', parts: [{ text: 'When did it happen?' }] },
+  ]);
 });

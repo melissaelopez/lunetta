@@ -60,14 +60,24 @@ router.get('/:babyUid/sleep/score', requireToken, async (req, res) => {
     const prematureWeeks = parseInt(String(req.query.premature_weeks)) || 0;
     const tzOffset = parseInt(String(req.query.tz_offset)) || 0;
     const bedtimeHour = req.query.bedtime_hour ? parseInt(String(req.query.bedtime_hour)) : undefined;
+    const rawNormalWake = req.query.normal_wake_minutes;
+    let queryNormalWake: number | null | undefined = undefined;
+    if (rawNormalWake === 'default') {
+      queryNormalWake = null;
+    } else if (rawNormalWake !== undefined && rawNormalWake !== '') {
+      const parsed = parseInt(String(rawNormalWake), 10);
+      if (Number.isFinite(parsed) && parsed > 0) queryNormalWake = Math.min(90, Math.max(5, parsed));
+    }
     if (!start || !end || !birthdate) {
       res.status(400).json({ error: 'bad_request', message: 'start, end, and birthdate query params required' });
       return;
     }
-    const [nights, activity] = await Promise.all([
+    const [nights, activity, babySettings] = await Promise.all([
       getNightsForWindow(token, babyUid, start, end),
       getWindowActivity(token, babyUid, start, end),
+      queryNormalWake === undefined ? store.getBabySettings(babyUid).catch(() => null) : Promise.resolve(null),
     ]);
+    const normalWakeMinutes = queryNormalWake !== undefined ? queryNormalWake : (babySettings?.normal_wake_minutes ?? null);
     if (nights.length === 0) {
       res.json({ scores: [] });
       return;
@@ -82,7 +92,7 @@ router.get('/:babyUid/sleep/score', requireToken, async (req, res) => {
       return {
         night_id: id,
         is_main: raw === main,
-        ...scoreNight(raw, { birthdate, prematureWeeks, annotation, tzOffset, bedtimeHour, activity }),
+        ...scoreNight(raw, { birthdate, prematureWeeks, annotation, tzOffset, bedtimeHour, normalWakeMinutes, activity }),
         night_start: adjusted.night_start,
         night_end: adjusted.night_end,
         raw_night_start: raw.night_start,

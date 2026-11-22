@@ -273,6 +273,8 @@ export interface ScoreOptions {
   tzOffset?: number;
   /** The parent's configured bedtime hour; widens the ideal bedtime range if outside the age table. */
   bedtimeHour?: number;
+  /** Parent-configured normal night wake duration (minutes); null/undefined uses the age-based default. */
+  normalWakeMinutes?: number | null;
   /** Nanit state events (VISIT, REMOVED, ...) for the night, used to tell self-settled wakes from parent visits. */
   activity?: WindowActivity | null;
 }
@@ -358,7 +360,7 @@ function expectedStretchHours(adjAge: number): number {
 }
 
 export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepScoreBreakdown {
-  const { birthdate, prematureWeeks = 0, annotation, tzOffset = 0, bedtimeHour, activity } = opts;
+  const { birthdate, prematureWeeks = 0, annotation, tzOffset = 0, bedtimeHour, normalWakeMinutes: customNormalWakeMinutes, activity } = opts;
   const night = applyAnnotation(rawNight, annotation);
   const wakes = classifyWakes(night.gaps, activity, annotation?.wake_overrides);
   const counts = wakeCounts(wakes);
@@ -366,6 +368,8 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
   // Score against the age the baby was on that night, not today
   const adjAge = getAdjustedAgeMonths(birthdate, prematureWeeks, new Date(night.night_start * 1000));
   const expect = getExpectations(adjAge);
+  const hasCustomNormalWake = typeof customNormalWakeMinutes === 'number' && Number.isFinite(customNormalWakeMinutes) && customNormalWakeMinutes > 0;
+  const normalWakeMinutes = hasCustomNormalWake ? Math.round(customNormalWakeMinutes!) : expect.normalWakeDuration;
 
   // Gaps the parent corrected to "Baby asleep" are false wakes: count them as sleep, not wakes
   const falseWakeMinutes = wakes
@@ -405,7 +409,7 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
   // -1 per 5 minutes a wake runs past the normal duration, capped at -5 per wake
   let longWakePenalty = 0;
   for (const wake of realWakes) {
-    const excessMinutes = Math.max(0, wake.duration_minutes - expect.normalWakeDuration);
+    const excessMinutes = Math.max(0, wake.duration_minutes - normalWakeMinutes);
     if (excessMinutes > 0) {
       const penalty = Math.min(Math.floor(excessMinutes / 5), 5);
       longWakePenalty += wake.response === 'self_settled' ? Math.floor(penalty / 2) : penalty;
@@ -483,7 +487,8 @@ export function scoreNight(rawNight: NightSummary, opts: ScoreOptions): SleepSco
       adjusted_age_months: Math.round(adjAge * 10) / 10,
       ideal_sleep_hours: expect.nightSleepHours.ideal,
       expected_wakes: expect.expectedWakes,
-      normal_wake_minutes: expect.normalWakeDuration,
+      normal_wake_minutes: normalWakeMinutes,
+      normal_wake_minutes_custom: hasCustomNormalWake,
       expected_stretch_hours: expectedStretch,
       ideal_bedtime_range: [idealStart, idealEnd],
       excess_wake_penalty: excessWakePenalty,

@@ -18,6 +18,8 @@ export interface BabySettings {
   bedtime_hour?: number;
   wake_hour?: number;
   premature_weeks?: number;
+  /** Custom normal night wake duration in minutes (null = use age-based default). */
+  normal_wake_minutes?: number | null;
   milestones?: Partial<BabyMilestones>;
   sleepwear?: Sleepwear;
   pacifier?: boolean;

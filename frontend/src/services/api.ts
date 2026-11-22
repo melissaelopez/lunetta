@@ -195,6 +195,7 @@ export interface BabySettings {
   bedtime_hour?: number;
   wake_hour?: number;
   premature_weeks?: number;
+  normal_wake_minutes?: number | null;
   milestones?: {
     rolls_back_to_belly?: boolean;
     rolls_belly_to_back?: boolean;
@@ -228,6 +229,7 @@ export async function getSleepScore(
   birthdate: string,
   prematureWeeks: number = 0,
   bedtimeHour?: number,
+  normalWakeMinutes?: number | null,
 ): Promise<ScoredNight[]> {
   const params = new URLSearchParams({
     start: String(start),
@@ -236,6 +238,11 @@ export async function getSleepScore(
     premature_weeks: String(prematureWeeks),
     tz_offset: String(new Date().getTimezoneOffset()),
     ...(bedtimeHour !== undefined ? { bedtime_hour: String(bedtimeHour) } : {}),
+    ...(normalWakeMinutes === null
+      ? { normal_wake_minutes: 'default' }
+      : normalWakeMinutes !== undefined
+        ? { normal_wake_minutes: String(normalWakeMinutes) }
+        : {}),
   });
   const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/score?${params}`);
   const data = await res.json();
@@ -578,6 +585,47 @@ export async function getInsights(
     insights,
     needsApiKey: false,
     usingUserKey: !!data.using_user_key,
+  };
+}
+
+export interface InsightsChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export async function chatNightInsights(
+  babyUid: string,
+  start: number,
+  end: number,
+  birthdate: string,
+  prematureWeeks: number,
+  bedtimeHour: number,
+  wakeHour: number,
+  messages: InsightsChatMessage[],
+  currentInsights?: NightInsights | null,
+): Promise<{ reply: string | null; needsApiKey: boolean }> {
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/insights/chat`, {
+    method: 'POST',
+    headers: geminiHeaders(),
+    body: JSON.stringify({
+      start,
+      end,
+      birthdate,
+      premature_weeks: prematureWeeks,
+      bedtime_hour: bedtimeHour,
+      wake_hour: wakeHour,
+      tz_offset: new Date().getTimezoneOffset(),
+      messages,
+      current_insights: currentInsights ?? null,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new ApiRequestError(data.message || 'Chat request failed', data.error, res.status);
+  }
+  return {
+    reply: data.reply ?? null,
+    needsApiKey: !!data.needs_api_key,
   };
 }
 

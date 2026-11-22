@@ -453,7 +453,7 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
                 )}
 
                 {matchingClips.length > 1 && (
-                  <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                  <div data-no-tab-swipe className="flex gap-1.5 overflow-x-auto pb-0.5">
                     {matchingClips.map(clip => {
                       const isCurrent = clip.uid === activeClip.uid;
                       return (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Settings, Moon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, Moon, Clock, Sparkles, TrendingUp, Video } from 'lucide-react';
 import { DateTime } from 'luxon';
 import { Nav } from './Nav';
 import { SettingsPanel } from './SettingsPanel';
@@ -8,6 +8,7 @@ import { SleepTimeline } from '../sleep/SleepTimeline';
 import { NightAdjustCard } from '../sleep/NightAdjustCard';
 import { DayActivityCard } from '../sleep/DayActivityCard';
 import { ErrorState } from '../common/ErrorState';
+import { SectionCarouselTabs, type CarouselTab } from '../common/SectionCarouselTabs';
 import { errorMessage } from '../../utils/errors';
 import { SleepTrendChart } from '../sleep/SleepTrendChart';
 import { NightInsightsCard } from '../sleep/NightInsightsCard';
@@ -36,6 +37,8 @@ export function Dashboard() {
   const [messages, setMessages] = useState<NanitMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [historyTab, setHistoryTab] = useState('timeline');
+  const [tonightTab, setTonightTab] = useState('analysis');
   const { settings, setSettings } = useSettings(baby?.uid);
   const nw = nightWindow(date, settings);
 
@@ -64,7 +67,7 @@ export function Dashboard() {
     setScoreError(null);
 
     Promise.all([
-      api.getSleepScore(baby.uid, nw.start, nw.end, baby.birthdate, settings.prematureWeeks, settings.bedtimeHour)
+      api.getSleepScore(baby.uid, nw.start, nw.end, baby.birthdate, settings.prematureWeeks, settings.bedtimeHour, settings.normalWakeMinutes)
         .then(scores => {
           setSleepScore(scores.find(s => s.is_main) ?? scores[0] ?? null);
         })
@@ -102,6 +105,125 @@ export function Dashboard() {
 
   const isLatest = date >= today;
   const displayDate = DateTime.fromISO(date).toFormat('EEE, MMM d');
+
+  const tonightTabs: CarouselTab[] = [
+    {
+      id: 'analysis',
+      label: 'Analysis',
+      icon: <Sparkles size={14} />,
+      content: (
+        <>
+          <DayActivityCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
+          <VideoPatternsCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
+        </>
+      ),
+    },
+    {
+      id: 'trends',
+      label: 'Trends',
+      icon: <TrendingUp size={14} />,
+      content: (
+        <>
+          <SleepTrendChart baby={baby} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} prematureWeeks={settings.prematureWeeks} />
+          <ScheduleOptimizerCard
+            baby={baby}
+            prematureWeeks={settings.prematureWeeks}
+            bedtimeHour={settings.bedtimeHour}
+            wakeHour={settings.wakeHour}
+            onApply={(bedtime, wake) => setSettings({ bedtimeHour: bedtime, wakeHour: wake })}
+          />
+        </>
+      ),
+    },
+    {
+      id: 'events',
+      label: 'Events',
+      icon: <Video size={14} />,
+      content: (
+        <VideoEventsCard
+          baby={baby}
+          prematureWeeks={settings.prematureWeeks}
+          nightStart={tonightNw.start}
+          nightEnd={tonightNw.end}
+          nightLabel="Tonight"
+        />
+      ),
+    },
+  ];
+
+  const historyTabs: CarouselTab[] = [
+    {
+      id: 'timeline',
+      label: 'Timeline',
+      icon: <Clock size={14} />,
+      content: (
+        <>
+          <SleepTimeline sleepScore={sleepScore} loading={loading} baby={baby} onSaved={refetch} />
+          <NightAdjustCard baby={baby} night={sleepScore} loading={loading} onSaved={refetch} />
+        </>
+      ),
+    },
+    {
+      id: 'analysis',
+      label: 'Analysis',
+      icon: <Sparkles size={14} />,
+      content: (
+        <>
+          <DayActivityCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
+          <NightInsightsCard
+            baby={baby}
+            nightStart={nw.start}
+            nightEnd={nw.end}
+            prematureWeeks={settings.prematureWeeks}
+            bedtimeHour={settings.bedtimeHour}
+            wakeHour={settings.wakeHour}
+            hasSleepData={!!sleepScore}
+          />
+          <NightComparisonCard
+            baby={baby}
+            prematureWeeks={settings.prematureWeeks}
+            bedtimeHour={settings.bedtimeHour}
+            wakeHour={settings.wakeHour}
+          />
+          <VideoPatternsCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
+        </>
+      ),
+    },
+    {
+      id: 'trends',
+      label: 'Trends',
+      icon: <TrendingUp size={14} />,
+      content: (
+        <>
+          <SleepTrendChart baby={baby} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} prematureWeeks={settings.prematureWeeks} />
+          <ScheduleOptimizerCard
+            baby={baby}
+            prematureWeeks={settings.prematureWeeks}
+            bedtimeHour={settings.bedtimeHour}
+            wakeHour={settings.wakeHour}
+            onApply={(bedtime, wake) => setSettings({ bedtimeHour: bedtime, wakeHour: wake })}
+          />
+        </>
+      ),
+    },
+    {
+      id: 'events',
+      label: 'Events',
+      icon: <Video size={14} />,
+      content: (
+        <>
+          <VideoEventsCard
+            baby={baby}
+            prematureWeeks={settings.prematureWeeks}
+            nightStart={nw.start}
+            nightEnd={nw.end}
+            nightLabel={displayDate}
+          />
+          <CareCard events={careEvents} allTypes={allTypes} loading={loading} />
+        </>
+      ),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -184,26 +306,11 @@ export function Dashboard() {
                 prematureWeeks={settings.prematureWeeks}
                 bedtimeHour={settings.bedtimeHour}
                 wakeHour={settings.wakeHour}
+                normalWakeMinutes={settings.normalWakeMinutes}
               />
             </div>
             <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
-            <DayActivityCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
-            <VideoEventsCard
-              baby={baby}
-              prematureWeeks={settings.prematureWeeks}
-              nightStart={tonightNw.start}
-              nightEnd={tonightNw.end}
-              nightLabel="Tonight"
-            />
-            <ScheduleOptimizerCard
-              baby={baby}
-              prematureWeeks={settings.prematureWeeks}
-              bedtimeHour={settings.bedtimeHour}
-              wakeHour={settings.wakeHour}
-              onApply={(bedtime, wake) => setSettings({ bedtimeHour: bedtime, wakeHour: wake })}
-            />
-            <VideoPatternsCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
-            <SleepTrendChart baby={baby} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} prematureWeeks={settings.prematureWeeks} />
+            <SectionCarouselTabs tabs={tonightTabs} activeId={tonightTab} onChange={setTonightTab} />
           </div>
         ) : (
           /* HISTORY MODE */
@@ -213,44 +320,10 @@ export function Dashboard() {
                 <ErrorState title="Couldn't load this night from Nanit" message={scoreError} onRetry={refetch} />
               </div>
             )}
-            <SleepScoreCard score={sleepScore} loading={loading} />
+            <SleepScoreCard score={sleepScore} loading={loading} onOpenSettings={() => setSettingsOpen(true)} />
             <EventsCard messages={messages} loading={loading} />
-            <SleepTimeline sleepScore={sleepScore} loading={loading} baby={baby} onSaved={refetch} />
-            <NightAdjustCard baby={baby} night={sleepScore} loading={loading} onSaved={refetch} />
-            <NightInsightsCard
-              baby={baby}
-              nightStart={nw.start}
-              nightEnd={nw.end}
-              prematureWeeks={settings.prematureWeeks}
-              bedtimeHour={settings.bedtimeHour}
-              wakeHour={settings.wakeHour}
-              hasSleepData={!!sleepScore}
-            />
-            <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
-            <DayActivityCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
-            <VideoEventsCard
-              baby={baby}
-              prematureWeeks={settings.prematureWeeks}
-              nightStart={nw.start}
-              nightEnd={nw.end}
-              nightLabel={displayDate}
-            />
-            <CareCard events={careEvents} allTypes={allTypes} loading={loading} />
-            <NightComparisonCard
-              baby={baby}
-              prematureWeeks={settings.prematureWeeks}
-              bedtimeHour={settings.bedtimeHour}
-              wakeHour={settings.wakeHour}
-            />
-            <ScheduleOptimizerCard
-              baby={baby}
-              prematureWeeks={settings.prematureWeeks}
-              bedtimeHour={settings.bedtimeHour}
-              wakeHour={settings.wakeHour}
-              onApply={(bedtime, wake) => setSettings({ bedtimeHour: bedtime, wakeHour: wake })}
-            />
-            <VideoPatternsCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
-            <SleepTrendChart baby={baby} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} prematureWeeks={settings.prematureWeeks} />
+            <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} fullWidth />
+            <SectionCarouselTabs tabs={historyTabs} activeId={historyTab} onChange={setHistoryTab} />
           </div>
         )}
       </main>

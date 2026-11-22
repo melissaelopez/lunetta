@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Sparkles, CheckCircle, AlertTriangle, TrendingUp, Lightbulb, RefreshCw, KeyRound } from 'lucide-react';
 import { Card } from '../common/Card';
 import { GeminiKeyInput } from '../common/GeminiKeyInput';
+import { NightInsightsChat } from './NightInsightsChat';
 import { VideoAnalysisPanel } from './VideoAnalysisPanel';
 import * as api from '../../services/api';
 import { ApiRequestError, type NightInsights } from '../../services/api';
@@ -263,6 +264,17 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
               <p className="text-xs leading-relaxed text-indigo-800 dark:text-indigo-300">{insights.tip}</p>
             </div>
           )}
+
+          {/* Follow-up chat with Gemini */}
+          <NightInsightsChat
+            baby={baby}
+            nightStart={nightStart}
+            nightEnd={nightEnd}
+            prematureWeeks={prematureWeeks}
+            bedtimeHour={bedtimeHour}
+            wakeHour={wakeHour}
+            currentInsights={insights}
+          />
         </div>
       )}
     </Card>

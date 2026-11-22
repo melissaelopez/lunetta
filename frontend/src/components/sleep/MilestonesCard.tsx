@@ -12,6 +12,7 @@ interface Props {
   prematureWeeks: number;
   bedtimeHour: number;
   wakeHour: number;
+  fullWidth?: boolean;
 }
 
 const KIND_STYLES: Record<Milestone['kind'], string> = {
@@ -21,7 +22,7 @@ const KIND_STYLES: Record<Milestone['kind'], string> = {
   improvement: 'border-violet-200 dark:border-violet-500/40 bg-violet-50 dark:bg-violet-950/30 text-violet-800 dark:text-violet-300',
 };
 
-export function MilestonesCard({ baby, prematureWeeks, bedtimeHour, wakeHour }: Props) {
+export function MilestonesCard({ baby, prematureWeeks, bedtimeHour, wakeHour, fullWidth = false }: Props) {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,9 +38,11 @@ export function MilestonesCard({ baby, prematureWeeks, bedtimeHour, wakeHour }: 
       .finally(() => setLoading(false));
   }, [baby, prematureWeeks, bedtimeHour, wakeHour, attempt]);
 
+  const spanClass = fullWidth ? 'col-span-full' : undefined;
+
   if (loading) {
     return (
-      <Card title="Milestones">
+      <Card title="Milestones" className={spanClass}>
         <div className="flex h-20 items-center justify-center">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
         </div>
@@ -49,7 +52,7 @@ export function MilestonesCard({ baby, prematureWeeks, bedtimeHour, wakeHour }: 
 
   if (error) {
     return (
-      <Card title="Milestones" action={<Award size={14} className="text-amber-600 dark:text-amber-400" />}>
+      <Card title="Milestones" className={spanClass} action={<Award size={14} className="text-amber-600 dark:text-amber-400" />}>
         <ErrorState message={error} onRetry={() => setAttempt(a => a + 1)} compact />
       </Card>
     );
@@ -57,7 +60,7 @@ export function MilestonesCard({ baby, prematureWeeks, bedtimeHour, wakeHour }: 
 
   if (milestones.length === 0) {
     return (
-      <Card title="Milestones" action={<Award size={14} className="text-amber-600 dark:text-amber-400" />}>
+      <Card title="Milestones" className={spanClass} action={<Award size={14} className="text-amber-600 dark:text-amber-400" />}>
         <p className="py-3 text-center text-xs text-slate-600 dark:text-slate-400">
           Keep tracking — milestones appear as trends develop.
         </p>
@@ -68,9 +71,10 @@ export function MilestonesCard({ baby, prematureWeeks, bedtimeHour, wakeHour }: 
   return (
     <Card
       title={`Milestones (${milestones.length})`}
+      className={spanClass}
       action={<Award size={14} className="text-amber-600 dark:text-amber-400" />}
     >
-      <div className="space-y-2">
+      <div className={fullWidth ? 'grid gap-2 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-2'}>
         {milestones.map(m => (
           <div
             key={m.id}

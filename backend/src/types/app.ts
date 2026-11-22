@@ -33,6 +33,8 @@ export interface SleepScoreBreakdown {
     ideal_sleep_hours: number;
     expected_wakes: number;
     normal_wake_minutes: number;
+    /** true when normal_wake_minutes was customized by the parent instead of using the age default. */
+    normal_wake_minutes_custom?: boolean;
     expected_stretch_hours: number;
     ideal_bedtime_range: [number, number];
     excess_wake_penalty: number;

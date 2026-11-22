@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, SchemaType, type Part, type ResponseSchema } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType, type Content, type Part, type ResponseSchema } from '@google/generative-ai';
 import { z } from 'zod';
 import { config } from '../config.js';
 import type { StructuredRequest } from './ai-types.js';
@@ -167,4 +167,68 @@ export async function generateGeminiStructured<S extends z.ZodType>(
     throw new Error('Gemini returned invalid JSON for structured output');
   }
   return req.schema.parse(parsed);
+}
+
+export interface GeminiChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface GeminiChatRequest {
+  label: string;
+  system: string;
+  messages: GeminiChatMessage[];
+  maxTokens?: number;
+  /** Optional per-request API key (e.g. from X-Gemini-Api-Key header). Never log, store, or cache. */
+  apiKeyOverride?: string;
+}
+
+export async function generateGeminiChat(
+  req: GeminiChatRequest,
+  injectedClient?: GoogleGenerativeAI,
+): Promise<string> {
+  const userKey = req.apiKeyOverride?.trim();
+  const apiKey = userKey || config.gemini.apiKey;
+  if (!apiKey && !injectedClient) {
+    throw new Error('GEMINI_API_KEY is not configured');
+  }
+
+  const contents: Content[] = req.messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+
+  const modelName = config.ai.provider === 'gemini' ? config.ai.model : config.gemini.model;
+  const started = Date.now();
+  console.log(
+    `[ai:gemini:${req.label}] ${modelName} turns=${contents.length} keySource=${userKey ? 'user' : 'server'}`,
+  );
+
+  // Per-request client ensures user-supplied keys live only in local stack scope and are never cached.
+  const client = injectedClient ?? new GoogleGenerativeAI(apiKey);
+  const model = client.getGenerativeModel({
+    model: modelName,
+    systemInstruction: req.system,
+    generationConfig: {
+      maxOutputTokens: req.maxTokens ?? 2048,
+    },
+  });
+
+  const result = await model.generateContent({ contents });
+  const response = result.response;
+  const usage = response.usageMetadata;
+  console.log(
+    `[ai:gemini:${req.label}] done in ${Date.now() - started}ms — in=${usage?.promptTokenCount ?? 0} out=${usage?.candidatesTokenCount ?? 0}`,
+  );
+
+  const candidate = response.candidates?.[0];
+  if (candidate?.finishReason && candidate.finishReason !== 'STOP' && candidate.finishReason !== 'MAX_TOKENS') {
+    throw new Error(`Gemini did not complete the request (${candidate.finishReason})`);
+  }
+
+  const text = response.text().trim();
+  if (!text) {
+    throw new Error('Gemini returned an empty reply');
+  }
+  return text;
 }

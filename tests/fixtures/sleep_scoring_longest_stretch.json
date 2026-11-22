@@ -416,6 +416,64 @@
         "self_settled_wakes": 1,
         "parent_visit_wakes": 0
       }
+    },
+    "custom_normal_wake_minutes_newborn": {
+      "description": "8-week-old baby with 45m and 60m feeding/burping wakes: age default (25m) penalizes -9, custom 45m reduces penalty to -3, custom 60m gives 0 penalty",
+      "birthdate": "2025-07-22",
+      "calendar": [
+        {
+          "uid": "seg-nw-1",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757979000,
+          "end_ts": 1757989800,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757979000
+        },
+        {
+          "uid": "seg-nw-2",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1757992500,
+          "end_ts": 1758003300,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1757992500
+        },
+        {
+          "uid": "seg-nw-3",
+          "baby_uid": "fixture-baby-001",
+          "begin_ts": 1758006900,
+          "end_ts": 1758017700,
+          "duration": 10800,
+          "type": "auto_sleep",
+          "time": 1758006900
+        }
+      ],
+      "activity": {
+        "covered": true,
+        "events": [
+          { "key": "FELL_ASLEEP", "time": 1757979000 },
+          { "key": "VISIT", "time": 1757989920 },
+          { "key": "FELL_ASLEEP", "time": 1757992500 },
+          { "key": "REMOVED", "time": 1758003420 },
+          { "key": "FELL_ASLEEP", "time": 1758006900 }
+        ]
+      },
+      "expected_default": {
+        "normal_wake_minutes": 25,
+        "long_wake_penalty": 9,
+        "continuity_score": 26
+      },
+      "expected_custom_45": {
+        "normal_wake_minutes": 45,
+        "long_wake_penalty": 3,
+        "continuity_score": 32
+      },
+      "expected_custom_60": {
+        "normal_wake_minutes": 60,
+        "long_wake_penalty": 0,
+        "continuity_score": 35
+      }
     }
   }
 }

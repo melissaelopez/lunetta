@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import { z } from 'zod';
 import { generateStructured, isAiConfigured, type ImageInput } from './ai.js';
-import { sanitizeGeminiError } from './gemini-adapter.js';
+import { generateGeminiChat, sanitizeGeminiError, type GeminiChatMessage } from './gemini-adapter.js';
 import type { SleepScoreBreakdown } from '../types/app.js';
 import type { NightSummary } from './sleep-scorer.js';
 import type { WakeDetail } from './night-activity.js';
@@ -172,7 +172,7 @@ BABY PROFILE:
 ${nightLabel}:
 - Sleep Score${isInProgress ? ' so far' : ''}: ${cn.total_score}/100
   - Duration: ${cn.duration_score}/35 (${formatDuration(cd.total_sleep_minutes)}${isInProgress ? ' so far' : ''}, ${formatDuration(cd.target_sleep_minutes)} target)
-  - Continuity: ${cn.continuity_score}/35 (${cd.wake_count} wakes${isInProgress ? ' so far' : ''}; ${cx.self_settled_wakes ?? 0} self-settled, which never count as extra wakes)
+  - Continuity: ${cn.continuity_score}/35 (${cd.wake_count} wakes${isInProgress ? ' so far' : ''}; ${cx.self_settled_wakes ?? 0} self-settled, which never count as extra wakes; normal wake threshold ${cx.normal_wake_minutes} min${cx.normal_wake_minutes_custom ? ' — parent custom setting' : ''}, long-wake penalty −${cx.long_wake_penalty})
   - Longest Stretch: ${cn.onset_score}/15 (${formatDuration(cd.longest_stretch_minutes)}; self-settled wakes don't break a stretch, and awake time during them is excluded)
   - Timing: ${cn.timing_score}/15 (bedtime ${fmt(cd.bedtime)})
 - Bedtime: ${fmt(cd.bedtime)}${!isInProgress ? `\n- Wake time: ${fmt(cd.wake_time)}` : ''}
@@ -295,4 +295,71 @@ export async function generateNightInsights(
 
   cache.set(cacheKey, { insights, timestamp: Date.now() });
   return insights;
+}
+
+const CHAT_SYSTEM_INSTRUCTIONS = `${SYSTEM_PROMPT}
+
+You are now in a follow-up chat with the parent about this specific night.
+- Answer concisely, warmly, and practically (short paragraphs or brief bullets; easy to read on a phone).
+- You already have the full corrected sleep data for this night (including any manual bedtime/wake adjustments, wakes corrected to "Baby asleep", wake response overrides, custom normal wake length, daytime naps/wake windows, baby profile, and the last 7 nights).
+- Ground every observation in the provided data; never invent times or events.
+- If the parent asks a medical question (e.g. reflux, illness, breathing), share gentle general sleep context while noting that medical advice should come from their pediatrician.`;
+
+export async function chatAboutNight(params: {
+  currentNight: NightData;
+  recentNights: NightData[];
+  adjustedAgeMonths: number;
+  prematureWeeks: number;
+  tzOffset: number;
+  isInProgress: boolean;
+  profileBlock: string;
+  dayBlock: string;
+  annotationNotes?: string;
+  existingInsights?: NightInsights | null;
+  messages: GeminiChatMessage[];
+  geminiApiKey?: string;
+}): Promise<string | null> {
+  if (!isAiConfigured({ provider: 'gemini', geminiApiKey: params.geminiApiKey })) {
+    return null;
+  }
+
+  const nightContext = buildPrompt(
+    params.currentNight,
+    params.recentNights,
+    params.adjustedAgeMonths,
+    params.prematureWeeks,
+    false,
+    [],
+    params.isInProgress,
+    params.tzOffset,
+    params.profileBlock,
+    params.dayBlock,
+  );
+
+  const correctedFalseWakes = (params.currentNight.score.details.wakes ?? []).filter(w => w.response === 'asleep');
+  const correctionsNote = [
+    params.currentNight.score.details.adjusted ? 'Parent manually adjusted bedtime and/or wake time for this night.' : '',
+    correctedFalseWakes.length > 0
+      ? `Parent corrected ${correctedFalseWakes.length} false-positive Nanit wake block${correctedFalseWakes.length === 1 ? '' : 's'} to "Baby asleep" (already merged into total sleep and longest stretch above).`
+      : '',
+    params.annotationNotes ? `Parent note for this night: ${params.annotationNotes}` : '',
+  ].filter(Boolean).join('\n');
+
+  const insightsBlock = params.existingInsights?.summary
+    ? `\nPREVIOUS AI INSIGHTS SHOWN ON CARD:\n- Summary: ${params.existingInsights.summary}${params.existingInsights.tip ? `\n- Tip: ${params.existingInsights.tip}` : ''}\n`
+    : '';
+
+  const system = `${CHAT_SYSTEM_INSTRUCTIONS}\n\nNIGHT DATA CONTEXT:\n${nightContext}${correctionsNote ? `\nPARENT CORRECTIONS APPLIED:\n${correctionsNote}\n` : ''}${insightsBlock}`;
+
+  try {
+    return await generateGeminiChat({
+      label: 'insights-chat',
+      system,
+      messages: params.messages,
+      apiKeyOverride: params.geminiApiKey,
+    });
+  } catch (err: any) {
+    console.error('[insights-chat] Gemini request failed:', sanitizeGeminiError(String(err?.message || 'Unknown error')));
+    throw err;
+  }
 }

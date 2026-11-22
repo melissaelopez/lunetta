@@ -28,6 +28,8 @@ export interface RangeParams {
   bedtimeHour: number;
   wakeHour: number;
   tzOffset: number;
+  /** Optional override for normal wake duration in minutes (defaults to saved baby setting, else age table). */
+  normalWakeMinutes?: number | null;
   /** Anchor: nights strictly before this local date (default: today, i.e. last night is the newest). */
   beforeDate?: string;
 }
@@ -74,16 +76,19 @@ export async function scoreWindow(
   const nights = await getNightsForWindow(p.token, p.babyUid, window.start, window.end);
   if (nights.length === 0) return null;
   const raw = pickMainNight(nights);
-  const [annotation, activity] = await Promise.all([
+  const [annotation, activity, babySettings] = await Promise.all([
     store.getAnnotation(p.babyUid, nightId(p.babyUid, window.date)).catch(() => null),
     getWindowActivity(p.token, p.babyUid, window.start, window.end),
+    p.normalWakeMinutes === undefined ? store.getBabySettings(p.babyUid).catch(() => null) : Promise.resolve(null),
   ]);
+  const normalWakeMinutes = p.normalWakeMinutes !== undefined ? p.normalWakeMinutes : (babySettings?.normal_wake_minutes ?? null);
   const score = scoreNight(raw, {
     birthdate: p.birthdate,
     prematureWeeks: p.prematureWeeks,
     annotation,
     tzOffset: p.tzOffset,
     bedtimeHour: p.bedtimeHour,
+    normalWakeMinutes,
     activity,
   });
   return { date: window.date, window, raw, night: applyAnnotation(raw, annotation), score, annotation };
@@ -94,11 +99,18 @@ export async function scoreWindow(
  * Nights with no sleep data are omitted. Individual failures are logged and skipped.
  */
 export async function loadScoredNights(p: RangeParams): Promise<ScoredNight[]> {
+  // Resolve saved normal_wake_minutes once for the whole multi-night batch
+  let normalWakeMinutes = p.normalWakeMinutes;
+  if (normalWakeMinutes === undefined) {
+    const babySettings = await store.getBabySettings(p.babyUid).catch(() => null);
+    normalWakeMinutes = babySettings?.normal_wake_minutes ?? null;
+  }
+  const params = { ...p, normalWakeMinutes };
   const dates = pastNightDates(p.days, p.tzOffset, p.beforeDate);
   const results = await mapWithConcurrency(dates, NANIT_CONCURRENCY, async date => {
     const window = nightWindowFromDateStr(date, p.bedtimeHour, p.wakeHour, p.tzOffset);
     try {
-      return await scoreWindow(p, window);
+      return await scoreWindow(params, window);
     } catch (err: any) {
       // Auth failures must propagate so the client re-logs in; anything else is a skipped night
       if (err instanceof NanitAuthError || /401|Unauthorized/.test(String(err?.message))) throw err;
