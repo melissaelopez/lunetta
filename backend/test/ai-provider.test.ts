@@ -8,7 +8,7 @@ import { hasProviderApiKey, resolveAiSettings } from '../src/config.js';
 import { generateClaudeStructured } from '../src/services/claude.js';
 import { generateOpenAIStructured } from '../src/services/openai-adapter.js';
 import { generateGeminiChat, generateGeminiStructured, resolveGeminiChatModel, sanitizeGeminiError, zodToGeminiSchema } from '../src/services/gemini-adapter.js';
-import { buildPrompt } from '../src/services/ai-insights.js';
+import { buildPrompt, evaluateLiveInsightStaleness } from '../src/services/ai-insights.js';
 import { aiApiErrorResponse } from '../src/services/ai-api-error.js';
 import { handleRouteError } from '../src/middleware/errorHandler.js';
 
@@ -459,4 +459,38 @@ test('AI insights prompt includes current and recent nightly sleep factors and n
   assert.match(prompt, /Parent note for this night: Attempted a dream feed but it didn't go very smoothly/);
   assert.match(prompt, /RECENT NIGHTS \(up to last 14 days/);
   assert.match(prompt, /factors: \[Arms out — Halo Swaddle Sleep Sack\], note: "Fell asleep calmly in 5 minutes"/);
+});
+
+test('evaluateLiveInsightStaleness flags new wakes, factor edits, +15m sleep, and 30m age', () => {
+  const baseTime = 1_760_000_000_000;
+  const cached = {
+    insights: { summary: 'Sleeping well so far.', keyFactors: { positive: [], negative: [] }, comparison: '', patterns: [], tip: '' },
+    generated_at: baseTime,
+    sleep_minutes: 180,
+    wake_count: 1,
+    annotation_updated_at: 100,
+    factors_fingerprint: 'White noise',
+    profile_updated_at: 50,
+  };
+  const same = {
+    sleepMinutes: 190, // +10m (under 15m threshold)
+    wakeCount: 1,
+    annotationUpdatedAt: 100,
+    factorsFingerprint: 'White noise',
+    profileUpdatedAt: 50,
+  };
+
+  // Fresh: 10m old and +10m sleep
+  assert.deepEqual(evaluateLiveInsightStaleness(cached, same, baseTime + 10 * 60_000), { stale: false, reason: null });
+  // Stale due to new wake
+  assert.deepEqual(evaluateLiveInsightStaleness(cached, { ...same, wakeCount: 2 }, baseTime + 5 * 60_000), { stale: true, reason: '1 new wake logged' });
+  // Stale due to sleep factors / note change
+  assert.deepEqual(evaluateLiveInsightStaleness(cached, { ...same, factorsFingerprint: 'White noise|Dream feed' }, baseTime + 5 * 60_000), { stale: true, reason: 'Sleep factors or notes updated' });
+  // Stale due to +20m more sleep
+  assert.deepEqual(evaluateLiveInsightStaleness(cached, { ...same, sleepMinutes: 200 }, baseTime + 10 * 60_000), { stale: true, reason: '+20m more sleep logged' });
+  // Stale due to age >= 30m (live mode)
+  assert.deepEqual(evaluateLiveInsightStaleness(cached, same, baseTime + 35 * 60_000), { stale: true, reason: 'Updated 35m ago' });
+  // Completed night (checkAge: false) does NOT go stale due to age alone, but DOES go stale on sleep/factor edits
+  assert.deepEqual(evaluateLiveInsightStaleness(cached, { ...same, sleepMinutes: 180 }, baseTime + 72 * 60 * 60_000, { checkAge: false }), { stale: false, reason: null });
+  assert.deepEqual(evaluateLiveInsightStaleness(cached, { ...same, sleepMinutes: 185 }, baseTime + 5 * 60_000, { checkAge: false }), { stale: true, reason: 'Sleep duration updated' });
 });

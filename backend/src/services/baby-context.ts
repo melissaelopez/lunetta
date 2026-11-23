@@ -81,20 +81,8 @@ export function profilePromptBlock(p: BabyProfile): string {
     lines.push('  => Standing in the crib is expected; only flag hazards a standing baby could reach (mobiles, cords, items on nearby furniture).');
   }
 
-  const wear = p.sleepwear === 'swaddle' ? 'swaddle' : p.sleepwear === 'sleep_sack' ? 'wearable sleep sack' : 'none (pajamas only)';
-  lines.push(`- Sleepwear: ${wear}.`);
-  if (p.sleepwear === 'sleep_sack') {
-    lines.push('  => A sleep sack is expected and safe; do not describe it as a loose blanket or covering.');
-  }
-  if (p.sleepwear === 'swaddle' && (m.rolls_back_to_belly || m.rolls_belly_to_back)) {
-    lines.push('  => The baby is swaddled but has started rolling. This IS worth flagging gently: swaddling should stop once rolling begins.');
-  }
-
   lines.push(`- Pacifier: ${yn(p.pacifier)}.${p.pacifier ? ' A pacifier in the crib is expected, not an object hazard.' : ''}`);
-
-  if (p.notes.trim()) {
-    lines.push(`- Notes from the parent: "${p.notes.trim().slice(0, 600)}"`);
-  }
+  lines.push('- Sleepwear & nightly notes: use the per-night Sleep Factors and Night Note logged on each night (a sleep sack is expected and safe, not a loose blanket; if swaddled after rolling starts, gently flag that swaddling should stop).');
 
   return `PARENT-PROVIDED CONTEXT (treat as ground truth; adjust your judgments to it and never re-flag things the parent has established as normal):\n${lines.join('\n')}`;
 }

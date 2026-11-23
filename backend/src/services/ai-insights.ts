@@ -5,6 +5,55 @@ import { generateGeminiChat, sanitizeGeminiError, type GeminiChatMessage } from 
 import type { SleepScoreBreakdown } from '../types/app.js';
 import type { NightSummary } from './sleep-scorer.js';
 import type { WakeDetail } from './night-activity.js';
+import type { LiveCachedInsight } from './storage.js';
+
+export const LIVE_INSIGHT_STALE_MINUTES = 30;
+export const LIVE_INSIGHT_SLEEP_DELTA_MINUTES = 15;
+
+/**
+ * Determine whether a cached insight (either live Tonight or a completed night)
+ * has become stale compared to the latest sleep data, annotations, or age.
+ */
+export function evaluateLiveInsightStaleness(
+  cached: LiveCachedInsight,
+  current: {
+    sleepMinutes: number;
+    wakeCount: number;
+    annotationUpdatedAt: number;
+    factorsFingerprint: string;
+    profileUpdatedAt: number;
+  },
+  now: number = Date.now(),
+  opts: { checkAge?: boolean } = {},
+): { stale: boolean; reason: string | null } {
+  const checkAge = opts.checkAge ?? true;
+  const wakeDiff = current.wakeCount - cached.wake_count;
+  if (wakeDiff > 0) {
+    return { stale: true, reason: wakeDiff === 1 ? '1 new wake logged' : `${wakeDiff} new wakes logged` };
+  }
+  if (wakeDiff < 0) {
+    return { stale: true, reason: 'Wake count updated' };
+  }
+  if (current.annotationUpdatedAt !== cached.annotation_updated_at || current.factorsFingerprint !== cached.factors_fingerprint) {
+    return { stale: true, reason: 'Sleep factors or notes updated' };
+  }
+  if (current.profileUpdatedAt !== cached.profile_updated_at) {
+    return { stale: true, reason: 'Baby profile updated' };
+  }
+  const sleepDelta = current.sleepMinutes - cached.sleep_minutes;
+  const sleepThreshold = checkAge ? LIVE_INSIGHT_SLEEP_DELTA_MINUTES : 1;
+  if (Math.abs(sleepDelta) >= sleepThreshold) {
+    const mins = Math.abs(Math.round(sleepDelta));
+    return { stale: true, reason: sleepDelta > 0 && checkAge ? `+${mins}m more sleep logged` : 'Sleep duration updated' };
+  }
+  if (checkAge) {
+    const ageMinutes = (now - cached.generated_at) / 60_000;
+    if (ageMinutes >= LIVE_INSIGHT_STALE_MINUTES) {
+      return { stale: true, reason: `Updated ${Math.floor(ageMinutes)}m ago` };
+    }
+  }
+  return { stale: false, reason: null };
+}
 
 // In-memory cache keyed by a hash of the exact prompt (data + profile + image labels),
 // so any change to the inputs is a miss. `force` bypasses it entirely.

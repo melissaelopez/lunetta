@@ -34,6 +34,8 @@ interface CompareInput {
   date: string;
   score: SleepScoreBreakdown;
   night: NightSummary;
+  sleepFactors?: string[];
+  notes?: string;
   thumbnailDataUrls: Array<{ mimeType: string; data: string; event_type: string; time: number }>;
 }
 
@@ -60,13 +62,15 @@ function nightBlock(label: string, night: CompareInput, tzOffset: number): strin
   const cn = night.score;
   const cd = cn.details;
   const gaps = describeWakes(cd.wakes ?? [], fmt);
+  const factorsLine = night.sleepFactors?.length ? `\n- Sleep factors: ${night.sleepFactors.join(', ')}` : '';
+  const notesLine = night.notes?.trim() ? `\n- Parent note: ${night.notes.trim()}` : '';
   return `${label} (${night.date}):
 - Score: ${cn.total_score}/100 (duration ${cn.duration_score}/35, continuity ${cn.continuity_score}/35, stretch ${cn.onset_score}/15, timing ${cn.timing_score}/15)
 - Total sleep: ${formatDuration(cd.total_sleep_minutes)} (target ${formatDuration(cd.target_sleep_minutes)})
 - Bedtime: ${fmt(cd.bedtime)}, wake: ${fmt(cd.wake_time)}
 - Longest stretch: ${formatDuration(cd.longest_stretch_minutes)}
 - Wake count: ${cd.wake_count}
-- Segments: ${night.night.sleep_segments.length}
+- Segments: ${night.night.sleep_segments.length}${factorsLine}${notesLine}
 - Wake timeline:
 ${gaps || '  No wakes recorded'}
 - Camera images attached for ${label}: ${night.thumbnailDataUrls.length}`;

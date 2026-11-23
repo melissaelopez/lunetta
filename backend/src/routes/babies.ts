@@ -41,6 +41,8 @@ router.put('/:babyUid/settings', requireToken, async (req, res) => {
     const b = req.body ?? {};
     const num = (v: unknown, lo: number, hi: number) =>
       typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : undefined;
+    const halfHour = (v: unknown, lo: number, hi: number) =>
+      typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v * 2) / 2)) : undefined;
 
     const milestones: Partial<BabyMilestones> = {};
     if (b.milestones && typeof b.milestones === 'object') {
@@ -62,8 +64,8 @@ router.put('/:babyUid/settings', requireToken, async (req, res) => {
       baby_uid: babyUid,
       name: typeof b.name === 'string' ? b.name.trim().slice(0, 40) : undefined,
       pronouns: PRONOUNS.includes(b.pronouns) ? b.pronouns : undefined,
-      bedtime_hour: num(b.bedtime_hour, 0, 23),
-      wake_hour: num(b.wake_hour, 0, 23),
+      bedtime_hour: halfHour(b.bedtime_hour, 0, 23.5),
+      wake_hour: halfHour(b.wake_hour, 0, 23.5),
       premature_weeks: num(b.premature_weeks, 0, 16),
       normal_wake_minutes: b.normal_wake_minutes === null ? null : num(b.normal_wake_minutes, 5, 90),
       ...(customSleepFactors !== undefined && { custom_sleep_factors: customSleepFactors }),

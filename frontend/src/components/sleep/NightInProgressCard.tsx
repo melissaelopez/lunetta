@@ -38,6 +38,10 @@ interface LiveNightData {
 export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, normalWakeMinutes, refreshKey = 0, onScoreLoaded, onSelectDate }: Props) {
   const [data, setData] = useState<LiveNightData | null>(null);
   const [insights, setInsights] = useState<NightInsights | null>(null);
+  const [insightsGeneratedAt, setInsightsGeneratedAt] = useState<number | null>(null);
+  const [insightsStale, setInsightsStale] = useState(false);
+  const [insightsStaleReason, setInsightsStaleReason] = useState<string | null>(null);
+  const [clockTick, setClockTick] = useState(() => Date.now());
   const [insightsNeedsKey, setInsightsNeedsKey] = useState(false);
   const [insightsInvalidKey, setInsightsInvalidKey] = useState(false);
   const [insightsLoading, setInsightsLoading] = useState(false);
@@ -89,11 +93,11 @@ export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, pre
     }
   }, [baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, normalWakeMinutes, onScoreLoaded]);
 
-  const fetchInsights = useCallback(async (force = false) => {
+  const fetchInsights = useCallback(async (force = false, silent = false) => {
     if (!baby) return;
     if (force) {
       setInsightsRegenerating(true);
-    } else {
+    } else if (!silent) {
       setInsightsLoading(true);
     }
     try {
@@ -101,6 +105,9 @@ export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, pre
       setInsightsNeedsKey(result.needsApiKey);
       setInsightsInvalidKey(false);
       setInsights(result.insights);
+      setInsightsGeneratedAt(result.generatedAt ?? null);
+      setInsightsStale(!!result.stale);
+      setInsightsStaleReason(result.staleReason ?? null);
       setInsightsError(null);
     } catch (err) {
       setInsightsInvalidKey(err instanceof ApiRequestError && err.code === 'ai_invalid_key');
@@ -111,11 +118,11 @@ export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, pre
     }
   }, [baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour]);
 
-  // Fetch insights once score is available
+  // Fetch cached insights (never burns tokens if already cached in Firestore) once score loads or refreshes
   useEffect(() => {
     if (!baby || !data?.score) return;
-    fetchInsights(false);
-  }, [baby, data?.score?.total_score]); // eslint-disable-line react-hooks/exhaustive-deps
+    fetchInsights(false, !!insights);
+  }, [baby, data?.score?.details?.total_sleep_minutes, data?.score?.details?.wake_count, data?.score?.annotation?.updated_at]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Re-fetch when user updates their Gemini API key
   useEffect(() => {
@@ -123,6 +130,12 @@ export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, pre
       if (baby && data?.score) fetchInsights(false);
     });
   }, [baby, data?.score, fetchInsights]);
+
+  // Tick every minute so the stale chip updates automatically once 30m elapse
+  useEffect(() => {
+    const timer = setInterval(() => setClockTick(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Initial fetch + auto-refresh every 5 minutes
   useEffect(() => {
@@ -243,22 +256,52 @@ export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, pre
         )}
 
         {/* AI insights for tonight */}
-        {(insightsLoading || insightsRegenerating || insights || insightsNeedsKey || insightsError) && (
+        {(insightsLoading || insightsRegenerating || insights || insightsNeedsKey || insightsError) && (() => {
+          const ageStale = insightsGeneratedAt !== null && clockTick - insightsGeneratedAt >= 30 * 60 * 1000;
+          const isStale = insightsStale || ageStale;
+          const updatedLabel = insightsGeneratedAt
+            ? new Date(insightsGeneratedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+            : null;
+          const staleText = insightsStaleReason
+            ?? (ageStale && insightsGeneratedAt ? `Updated ${Math.floor((clockTick - insightsGeneratedAt) / 60_000)}m ago` : null);
+
+          return (
           <div className="rounded-lg border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-950/20 p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
-                <Sparkles size={11} />
-                AI Insights
-              </p>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
+                  <Sparkles size={11} />
+                  AI Insights
+                </p>
+                {insights && isStale && (
+                  <span
+                    title={staleText ?? 'New sleep data has arrived since this analysis was generated'}
+                    className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-amber-100/90 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300"
+                  >
+                    Stale{updatedLabel ? ` · updated ${updatedLabel}` : ''}
+                    {staleText && !staleText.startsWith('Updated ') ? ` (${staleText})` : ''}
+                  </span>
+                )}
+                {insights && !isStale && updatedLabel && (
+                  <span className="text-[10px] text-slate-400 dark:text-indigo-200/50">
+                    Updated {updatedLabel}
+                  </span>
+                )}
+              </div>
               {insights && (
                 <button
+                  type="button"
                   onClick={() => fetchInsights(true)}
                   disabled={insightsRegenerating}
-                  className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50"
-                  title="Re-run Gemini analysis"
+                  className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium transition disabled:opacity-50 ${
+                    isStale
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+                      : 'text-indigo-600 hover:bg-indigo-100/70 hover:text-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-900/50 dark:hover:text-indigo-300'
+                  }`}
+                  title="Reload Gemini analysis with the latest tonight data"
                 >
                   <RefreshCw size={10} className={insightsRegenerating ? 'animate-spin' : ''} />
-                  {insightsRegenerating ? 'Regenerating…' : 'Regenerate'}
+                  {insightsRegenerating ? 'Reloading…' : 'Reload'}
                 </button>
               )}
             </div>
@@ -267,7 +310,7 @@ export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, pre
               <div className="flex items-center gap-2 py-1">
                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  {insightsRegenerating ? 'Regenerating insights with Gemini…' : "Analyzing tonight's sleep with Gemini…"}
+                  {insightsRegenerating ? 'Reloading insights with Gemini…' : "Analyzing tonight's sleep with Gemini…"}
                 </p>
               </div>
             ) : insightsNeedsKey ? (
@@ -341,9 +384,12 @@ export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, pre
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
 
-        <p className="text-[10px] text-slate-400 dark:text-slate-600">Auto-refreshes every 5 minutes. Click the refresh button for latest data.</p>
+        <p className="text-[10px] text-slate-400 dark:text-slate-600">
+          Live sleep stats refresh every 5 minutes. AI Insights stay cached until you tap Reload.
+        </p>
       </div>
     </Card>
   );

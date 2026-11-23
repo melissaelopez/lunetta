@@ -29,6 +29,7 @@ export interface SleepAnnotation {
   notes?: string;
   wake_overrides?: Record<string, WakeResponse>;
   sleep_factors?: string[];
+  sleep_factors_inherited_from?: string;
   updated_at: number;
 }
 

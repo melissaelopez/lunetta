@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Settings, X, Baby, Clock, Sparkles, Shield, KeyRound } from 'lucide-react';
 import { GA_MEASUREMENT_ID, getAnalyticsChoice, setAnalyticsChoice } from '../../analytics';
-import type { SleepSettings, BabyMilestones, Sleepwear, Pronouns } from '../../hooks/useSettings';
-import { adjustedAgeMonths } from '../../hooks/useSettings';
+import type { SleepSettings, BabyMilestones, Pronouns } from '../../hooks/useSettings';
+import { adjustedAgeMonths, formatHourLabel } from '../../hooks/useSettings';
 import { GeminiKeyInput } from '../common/GeminiKeyInput';
 
 interface Props {
@@ -15,12 +15,8 @@ interface Props {
   nanitName?: string;
 }
 
-function hourLabel(h: number): string {
-  if (h === 0) return '12:00 AM';
-  if (h === 12) return '12:00 PM';
-  if (h < 12) return `${h}:00 AM`;
-  return `${h - 12}:00 PM`;
-}
+const BEDTIME_OPTIONS = Array.from({ length: 14 }, (_, i) => 17 + i * 0.5); // 5:00 PM – 11:30 PM
+const WAKE_OPTIONS = Array.from({ length: 15 }, (_, i) => 5 + i * 0.5);    // 5:00 AM – 12:00 PM
 
 function ageLabel(months: number): string {
   if (months < 1) return `${Math.round(months * 4.33)} weeks`;
@@ -176,8 +172,8 @@ export function SettingsPanel({ open, onClose, settings, onUpdate, birthdate, na
                   onChange={e => onUpdate({ bedtimeHour: Number(e.target.value) })}
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 >
-                  {Array.from({ length: 8 }, (_, i) => i + 17).map(h => (
-                    <option key={h} value={h}>{hourLabel(h)}</option>
+                  {BEDTIME_OPTIONS.map(h => (
+                    <option key={h} value={h}>{formatHourLabel(h)}</option>
                   ))}
                 </select>
               </div>
@@ -191,8 +187,8 @@ export function SettingsPanel({ open, onClose, settings, onUpdate, birthdate, na
                   onChange={e => onUpdate({ wakeHour: Number(e.target.value) })}
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 >
-                  {Array.from({ length: 8 }, (_, i) => i + 5).map(h => (
-                    <option key={h} value={h}>{hourLabel(h)}</option>
+                  {WAKE_OPTIONS.map(h => (
+                    <option key={h} value={h}>{formatHourLabel(h)}</option>
                   ))}
                 </select>
               </div>
@@ -200,8 +196,8 @@ export function SettingsPanel({ open, onClose, settings, onUpdate, birthdate, na
 
             <div className="mt-3 rounded-lg bg-indigo-50 p-3 dark:bg-indigo-950/50">
               <p className="text-xs text-indigo-700 dark:text-indigo-300">
-                Night window: <strong>{hourLabel(settings.bedtimeHour)}</strong> to{' '}
-                <strong>{hourLabel(settings.wakeHour + 4)}</strong> next day
+                Night window: <strong>{formatHourLabel(settings.bedtimeHour)}</strong> to{' '}
+                <strong>{formatHourLabel(settings.wakeHour + 4)}</strong> next day
               </p>
             </div>
 
@@ -278,43 +274,15 @@ export function SettingsPanel({ open, onClose, settings, onUpdate, birthdate, na
               </p>
             )}
 
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Sleepwear</label>
-                <select
-                  value={settings.sleepwear}
-                  onChange={e => onUpdate({ sleepwear: e.target.value as Sleepwear })}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                >
-                  <option value="sleep_sack">Sleep sack</option>
-                  <option value="swaddle">Swaddle</option>
-                  <option value="none">Pajamas only</option>
-                </select>
-                {settings.sleepwear === 'swaddle' && (settings.milestones.rolls_back_to_belly || settings.milestones.rolls_belly_to_back) && (
-                  <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">Swaddling should stop once rolling starts. The AI will mention this.</p>
-                )}
-              </div>
-              <label className="flex cursor-pointer items-center gap-2.5 self-end rounded-lg border border-slate-200 p-2.5 dark:border-slate-700">
-                <input
-                  type="checkbox"
-                  checked={settings.pacifier}
-                  onChange={e => onUpdate({ pacifier: e.target.checked })}
-                  className="accent-violet-500"
-                />
-                <span className="text-sm text-slate-700 dark:text-slate-200">Uses a pacifier</span>
-              </label>
-            </div>
-
-            <div className="mt-4">
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Anything else the AI should know</label>
-              <textarea
-                value={settings.notes}
-                onChange={e => onUpdate({ notes: e.target.value.slice(0, 1000) })}
-                rows={3}
-                placeholder="e.g. She's a belly sleeper. White noise machine is on the shelf, not in the crib. Teething this week."
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500"
+            <label className="mt-3 flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 p-2.5 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/40">
+              <input
+                type="checkbox"
+                checked={settings.pacifier}
+                onChange={e => onUpdate({ pacifier: e.target.checked })}
+                className="accent-violet-500"
               />
-            </div>
+              <span className="text-sm text-slate-700 dark:text-slate-200">Uses a pacifier</span>
+            </label>
           </div>
 
           {/* Gemini API Key (BYOK, browser-only) */}

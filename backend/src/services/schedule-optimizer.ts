@@ -37,6 +37,14 @@ interface NightPoint {
   longest_stretch_minutes: number;
   bedtime: string; // ISO
   wake_time: string; // ISO
+  sleep_factors?: string[];
+  notes?: string;
+}
+
+function formatDecimalHour(h: number): string {
+  const whole = Math.floor(h);
+  const mins = Math.round((h - whole) * 60);
+  return `${whole}:${String(mins).padStart(2, '0')}`;
 }
 
 function hourOf(iso: string, tzOffset: number): number {
@@ -75,6 +83,8 @@ export async function recommendSchedule(
     sleep_hours: Math.round((n.total_sleep_minutes / 60) * 10) / 10,
     wakes: n.wake_count,
     longest_stretch_hours: Math.round((n.longest_stretch_minutes / 60) * 10) / 10,
+    sleep_factors: n.sleep_factors,
+    notes: n.notes,
   }));
 
   // Pre-compute basic correlations to give the model a head start
@@ -85,14 +95,19 @@ export async function recommendSchedule(
   const avgBedtimeBottom = bottom3.reduce((s, n) => s + n.bedtime_hour, 0) / bottom3.length;
 
   const nightsTable = analysis
-    .map(a => `  ${a.date}: score=${a.score}, bedtime=${a.bedtime_hour}h, wake=${a.wake_hour}h, sleep=${a.sleep_hours}h, wakes=${a.wakes}, longest=${a.longest_stretch_hours}h`)
+    .map(a => {
+      const factors = a.sleep_factors?.length ? `, factors=[${a.sleep_factors.join('; ')}]` : '';
+      const noteText = a.notes ? a.notes.replace(/\s+/g, ' ').trim().slice(0, 180) : '';
+      const note = noteText ? `, note="${noteText}"` : '';
+      return `  ${a.date}: score=${a.score}, bedtime=${a.bedtime_hour}h, wake=${a.wake_hour}h, sleep=${a.sleep_hours}h, wakes=${a.wakes}, longest=${a.longest_stretch_hours}h${factors}${note}`;
+    })
     .join('\n');
 
   const prompt = `Recommend an optimal sleep schedule for a baby who is ${Math.round(adjustedAgeMonths * 10) / 10} months old (adjusted age), based on this history.
 
 Current settings:
-- Expected bedtime: ${currentBedtimeHour}:00
-- Expected wake: ${currentWakeHour}:00
+- Expected bedtime: ${formatDecimalHour(currentBedtimeHour)}
+- Expected wake: ${formatDecimalHour(currentWakeHour)}
 
 Past ${nights.length} nights (bedtime/wake in local 24h decimal — e.g. 19.5 = 7:30 PM):
 ${nightsTable}

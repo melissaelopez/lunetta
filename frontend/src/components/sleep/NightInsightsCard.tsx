@@ -22,11 +22,31 @@ interface Props {
   onSelectDate?: (date: string) => void;
 }
 
+interface CachedInsightEntry {
+  insights: NightInsights;
+  generatedAt: number | null;
+  stale: boolean;
+  staleReason: string | null;
+}
+
 // Client-side cache to avoid re-fetching when navigating back
-const insightsCache = new Map<string, NightInsights>();
+const insightsCache = new Map<string, CachedInsightEntry>();
+
+function formatUpdatedAt(ts: number): string {
+  const d = new Date(ts);
+  const now = new Date();
+  const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (sameDay) return time;
+  const date = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return `${date}, ${time}`;
+}
 
 export function NightInsightsCard({ baby, nightDate, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, hasSleepData, annotationUpdatedAt = 0, onSelectDate }: Props) {
   const [insights, setInsights] = useState<NightInsights | null>(null);
+  const [generatedAt, setGeneratedAt] = useState<number | null>(null);
+  const [stale, setStale] = useState(false);
+  const [staleReason, setStaleReason] = useState<string | null>(null);
   const [needsApiKey, setNeedsApiKey] = useState(false);
   const [invalidKey, setInvalidKey] = useState(false);
   const [showKeyPanel, setShowKeyPanel] = useState(false);
@@ -37,6 +57,9 @@ export function NightInsightsCard({ baby, nightDate, nightStart, nightEnd, prema
   const fetchInsights = useCallback(async (force = false) => {
     if (!baby || !hasSleepData || !nightStart) {
       setInsights(null);
+      setGeneratedAt(null);
+      setStale(false);
+      setStaleReason(null);
       setNeedsApiKey(false);
       return;
     }
@@ -46,14 +69,22 @@ export function NightInsightsCard({ baby, nightDate, nightStart, nightEnd, prema
     if (!force) {
       const cached = insightsCache.get(cacheKey);
       if (cached) {
-        setInsights(cached);
+        setInsights(cached.insights);
+        setGeneratedAt(cached.generatedAt);
+        setStale(cached.stale);
+        setStaleReason(cached.staleReason);
         setNeedsApiKey(false);
         setInvalidKey(false);
         return;
       }
-      setLoading(true);
+      // If we already have insights for this night (e.g. parent just toggled a sleep factor),
+      // refresh staleness silently instead of flashing a full-card loading spinner.
+      const prevNightCached = Array.from(insightsCache.keys()).some(k => k.startsWith(`${baby.uid}:${nightStart}:`));
+      if (!prevNightCached) setLoading(true);
     } else {
-      insightsCache.delete(cacheKey);
+      for (const k of Array.from(insightsCache.keys())) {
+        if (k.startsWith(`${baby.uid}:${nightStart}:`)) insightsCache.delete(k);
+      }
       setRegenerating(true);
     }
 
@@ -64,13 +95,24 @@ export function NightInsightsCard({ baby, nightDate, nightStart, nightEnd, prema
       const result = await api.getInsights(baby.uid, nightStart, nightEnd, baby.birthdate, prematureWeeks, bedtimeHour, wakeHour, force);
       if (result.needsApiKey) {
         setInsights(null);
+        setGeneratedAt(null);
+        setStale(false);
+        setStaleReason(null);
         setNeedsApiKey(true);
         return;
       }
       setNeedsApiKey(false);
       setInsights(result.insights);
+      setGeneratedAt(result.generatedAt ?? null);
+      setStale(!!result.stale);
+      setStaleReason(result.staleReason ?? null);
       if (result.insights) {
-        insightsCache.set(cacheKey, result.insights);
+        insightsCache.set(cacheKey, {
+          insights: result.insights,
+          generatedAt: result.generatedAt ?? null,
+          stale: !!result.stale,
+          staleReason: result.staleReason ?? null,
+        });
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to generate insights';
@@ -151,12 +193,14 @@ export function NightInsightsCard({ baby, nightDate, nightStart, nightEnd, prema
 
   if (!insights || !insights.summary) return null;
 
+  const updatedLabel = generatedAt ? formatUpdatedAt(generatedAt) : null;
+
   return (
     <Card
       title="AI Insights"
       className="col-span-full"
       action={
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setShowKeyPanel(v => !v)}
             className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -168,16 +212,37 @@ export function NightInsightsCard({ baby, nightDate, nightStart, nightEnd, prema
           <button
             onClick={() => fetchInsights(true)}
             disabled={regenerating}
-            className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50"
-            title="Re-run Gemini analysis"
+            className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium transition disabled:opacity-50 ${
+              stale
+                ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+                : 'text-indigo-600 hover:bg-indigo-50 hover:text-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-950/60 dark:hover:text-indigo-300'
+            }`}
+            title="Reload Gemini analysis with the latest sleep factors, notes, and corrections"
           >
             <RefreshCw size={12} className={regenerating ? 'animate-spin' : ''} />
-            {regenerating ? 'Regenerating…' : 'Regenerate'}
+            {regenerating ? 'Reloading…' : 'Reload'}
           </button>
           <Sparkles size={16} className="text-indigo-600 dark:text-indigo-400" />
         </div>
       }
     >
+      {(stale || updatedLabel) && !regenerating && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {stale ? (
+            <span
+              title={staleReason ?? 'Night data, sleep factors, or notes changed since this analysis was generated'}
+              className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-amber-100/90 px-2.5 py-0.5 text-[11px] font-medium text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300"
+            >
+              Stale{updatedLabel ? ` · updated ${updatedLabel}` : ''}
+              {staleReason ? ` (${staleReason})` : ''}
+            </span>
+          ) : updatedLabel ? (
+            <span className="text-[11px] text-slate-400 dark:text-indigo-200/50">
+              Cached · updated {updatedLabel}
+            </span>
+          ) : null}
+        </div>
+      )}
       {showKeyPanel && (
         <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/50">
           <GeminiKeyInput compact onSaved={() => setShowKeyPanel(false)} />
@@ -186,7 +251,7 @@ export function NightInsightsCard({ baby, nightDate, nightStart, nightEnd, prema
       {regenerating ? (
         <div className="flex items-center gap-3 py-6">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-          <p className="text-sm text-slate-600 dark:text-slate-400">Regenerating insights with Gemini…</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Reloading insights with Gemini…</p>
         </div>
       ) : (
         <div className="space-y-4">

@@ -9,13 +9,14 @@ import type { VideoPatternsResult } from '../services/video-patterns.js';
 import type { AudioAnalysis } from '../services/audio-analysis.js';
 import { getAdjustedAgeMonths } from '../services/sleep-scorer.js';
 import { loadScoredNights } from '../services/night-history.js';
-import { localNow } from '../services/night-windows.js';
+import { localNow, parseHourParam } from '../services/night-windows.js';
 import { analyzeLongTermPatterns, type NightWithEvents } from '../services/video-patterns.js';
 import * as store from '../services/store.js';
 import { consumeAiBudget } from '../services/ai-budget.js';
 import { getBabyProfile, profilePromptBlock } from '../services/baby-context.js';
 import { isAiConfigured } from '../services/ai.js';
 import { sanitizeGeminiError } from '../services/gemini-adapter.js';
+import { applySleepFactorCarryover, resolveNightSleepFactors } from '../services/sleep-factors.js';
 
 const router = Router();
 
@@ -163,8 +164,8 @@ router.get('/:babyUid/video/patterns', requireToken, async (req, res) => {
     const birthdate = String(req.query.birthdate || '');
     const prematureWeeks = parseInt(String(req.query.premature_weeks)) || 0;
     const days = parseInt(String(req.query.days)) || 5;
-    const bedtimeHour = parseInt(String(req.query.bedtime_hour)) || 19;
-    const wakeHour = parseInt(String(req.query.wake_hour)) || 8;
+    const bedtimeHour = parseHourParam(req.query.bedtime_hour, 19);
+    const wakeHour = parseHourParam(req.query.wake_hour, 8);
     const tzOffset = parseInt(String(req.query.tz_offset)) || 0;
 
     if (!birthdate) {
@@ -194,12 +195,18 @@ router.get('/:babyUid/video/patterns', requireToken, async (req, res) => {
     }
 
     const scored = await loadScoredNights({ token, babyUid, days, birthdate, prematureWeeks, bedtimeHour, wakeHour, tzOffset });
-    const nights: NightWithEvents[] = scored.map(n => ({
+    const oldestSeed = scored.length > 0 && !Array.isArray(scored[0].annotation?.sleep_factors)
+      ? (await resolveNightSleepFactors(babyUid, scored[0].date, scored[0].annotation, { persist: false })).sleep_factors
+      : [];
+    const effectiveFactors = applySleepFactorCarryover(scored, oldestSeed);
+    const nights: NightWithEvents[] = scored.map((n, i) => ({
       date: n.date,
       score: n.score.total_score,
       total_sleep_minutes: n.score.details.total_sleep_minutes,
       wake_count: n.score.details.wake_count,
       longest_stretch_minutes: n.score.details.longest_stretch_minutes,
+      sleep_factors: effectiveFactors[i],
+      notes: n.annotation?.notes,
       events: allEvents
         .filter(e => e.time >= n.window.start && e.time <= n.window.end && e.media_urls?.thumbnail)
         .map(e => ({ key: e.key, title: e.title, time: e.time, thumbnail_url: e.media_urls?.thumbnail })),

@@ -61,9 +61,10 @@ export function createSqliteStore(path: string): Storage & { close(): void } {
       const previous = get<BabySettings>('settings', settings.baby_uid)?.value ?? {};
       set('settings', settings.baby_uid, { ...previous, ...JSON.parse(JSON.stringify(settings)) });
     },
-    async getCachedInsight<T extends CachedInsightValue>(babyUid: string, nightKey: string): Promise<T | null> {
+    async getCachedInsight<T extends CachedInsightValue>(babyUid: string, nightKey: string, maxAgeMs: number | null = 86400000): Promise<T | null> {
       const row = get<T>('insight', `${babyUid}:${nightKey}`);
-      return row && Date.now() - row.created_at <= 86400000 ? row.value : null;
+      if (!row) return null;
+      return maxAgeMs === null || Date.now() - row.created_at <= maxAgeMs ? row.value : null;
     },
     async cacheInsight(babyUid, nightKey, insights) { set('insight', `${babyUid}:${nightKey}`, insights); },
     async getCachedNights(babyUid, start, end) { return get<NightSummary[]>('nights', `v1:${babyUid}:${start}:${end}`)?.value ?? null; },

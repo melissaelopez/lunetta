@@ -25,7 +25,7 @@ import { EventsCard } from '../sensors/EventsCard';
 import { CareCard } from '../care/CareCard';
 import * as api from '../../services/api';
 import { formatAge, yesterdayStr, dayStart, dayEnd } from '../../utils/date';
-import { useSettings, nightWindow, adjustedAgeMonths, activeNightDate } from '../../hooks/useSettings';
+import { useSettings, nightWindow, adjustedAgeMonths, activeNightDate, formatHourLabel } from '../../hooks/useSettings';
 import type { Baby, CalendarEvent, NanitMessage, ScoredNight } from '../../types';
 
 export function Dashboard() {
@@ -157,13 +157,7 @@ export function Dashboard() {
     if (currentLiveNight) setDate(currentLiveNight);
   };
 
-  const bedtimeLabel = settings.bedtimeHour === 0
-    ? '12:00 AM'
-    : settings.bedtimeHour === 12
-      ? '12:00 PM'
-      : settings.bedtimeHour < 12
-        ? `${settings.bedtimeHour}:00 AM`
-        : `${settings.bedtimeHour - 12}:00 PM`;
+  const bedtimeLabel = formatHourLabel(settings.bedtimeHour);
 
   const isOnLastNight = effectiveDate === (lastNightDate ?? fallbackLastNight);
   const isLatest = effectiveDate >= maxDate;

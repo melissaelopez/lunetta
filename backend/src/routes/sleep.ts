@@ -3,14 +3,14 @@ import * as nanit from '../services/nanit-client.js';
 import { applyAnnotation, getAdjustedAgeMonths, pickMainNight, scoreNight } from '../services/sleep-scorer.js';
 import { getNightsForWindow, loadScoredNights, scoreWindow, toHistoryPoint } from '../services/night-history.js';
 import { getWindowActivity, type WakeResponse } from '../services/night-activity.js';
-import { localDateStr, localNow, nightId, nightWindowFromDateStr } from '../services/night-windows.js';
+import { localDateStr, localNow, nightId, nightWindowFromDateStr, parseHourParam, parseOptionalHourParam } from '../services/night-windows.js';
 import { requireToken } from '../middleware/auth.js';
 import { handleRouteError } from '../middleware/errorHandler.js';
 import * as store from '../services/store.js';
 import { consumeAiBudget } from '../services/ai-budget.js';
 import { getBabyProfile, profilePromptBlock } from '../services/baby-context.js';
 import { getAllTimeSleepRecords, markSleepRecordDateStale } from '../services/sleep-records.js';
-import { resolveNightSleepFactors } from '../services/sleep-factors.js';
+import { applySleepFactorCarryover, resolveNightSleepFactors } from '../services/sleep-factors.js';
 import type { SleepAnnotation } from '../types/app.js';
 import type { ScheduleRecommendation } from '../services/schedule-optimizer.js';
 
@@ -24,8 +24,8 @@ function rangeParams(req: any, defaultDays: number, maxDays = 60) {
     birthdate: String(req.query.birthdate || ''),
     prematureWeeks: parseInt(String(req.query.premature_weeks)) || 0,
     days: Math.min(parseInt(String(req.query.days)) || defaultDays, maxDays),
-    bedtimeHour: parseInt(String(req.query.bedtime_hour)) || 19,
-    wakeHour: parseInt(String(req.query.wake_hour)) || 8,
+    bedtimeHour: parseHourParam(req.query.bedtime_hour, 19),
+    wakeHour: parseHourParam(req.query.wake_hour, 8),
     tzOffset: parseInt(String(req.query.tz_offset)) || 0,
   };
 }
@@ -61,7 +61,7 @@ router.get('/:babyUid/sleep/score', requireToken, async (req, res) => {
     const birthdate = String(req.query.birthdate || '');
     const prematureWeeks = parseInt(String(req.query.premature_weeks)) || 0;
     const tzOffset = parseInt(String(req.query.tz_offset)) || 0;
-    const bedtimeHour = req.query.bedtime_hour ? parseInt(String(req.query.bedtime_hour)) : undefined;
+    const bedtimeHour = parseOptionalHourParam(req.query.bedtime_hour);
     const rawNormalWake = req.query.normal_wake_minutes;
     let queryNormalWake: number | null | undefined = undefined;
     if (rawNormalWake === 'default') {
@@ -95,10 +95,11 @@ router.get('/:babyUid/sleep/score', requireToken, async (req, res) => {
       const resolvedFactors = isMain
         ? await resolveNightSleepFactors(babyUid, date, annotation)
         : null;
+      const effectiveAnnotation = resolvedFactors?.annotation ?? annotation;
       return {
         night_id: id,
         is_main: isMain,
-        ...scoreNight(raw, { birthdate, prematureWeeks, annotation, tzOffset, bedtimeHour, normalWakeMinutes, activity }),
+        ...scoreNight(raw, { birthdate, prematureWeeks, annotation: effectiveAnnotation, tzOffset, bedtimeHour, normalWakeMinutes, activity }),
         night_start: adjusted.night_start,
         night_end: adjusted.night_end,
         raw_night_start: raw.night_start,
@@ -106,7 +107,7 @@ router.get('/:babyUid/sleep/score', requireToken, async (req, res) => {
         segment_count: adjusted.sleep_segments.length,
         segments: adjusted.sleep_segments,
         gaps: adjusted.gaps,
-        annotation,
+        annotation: effectiveAnnotation,
         ...(resolvedFactors?.inherited && resolvedFactors.sleep_factors.length > 0 && {
           inherited_sleep_factors: resolvedFactors.sleep_factors,
           inherited_sleep_factors_from: resolvedFactors.inherited_from,
@@ -286,16 +287,18 @@ router.get('/:babyUid/sleep/compare', requireToken, async (req, res) => {
       return valid;
     }
 
-    const [thumbsA, thumbsB] = await Promise.all([
+    const [thumbsA, thumbsB, factorsA, factorsB] = await Promise.all([
       thumbsForWindow(wa.start, wa.end),
       thumbsForWindow(wb.start, wb.end),
+      resolveNightSleepFactors(p.babyUid, dateA, nightA.annotation),
+      resolveNightSleepFactors(p.babyUid, dateB, nightB.annotation),
     ]);
 
     const adjAge = getAdjustedAgeMonths(p.birthdate, p.prematureWeeks, new Date(nightB.night.night_start * 1000));
     await consumeAiBudget(p.babyUid, 'compare');
     const comparison = await compareNights(
-      { date: dateA, score: nightA.score, night: nightA.night, thumbnailDataUrls: thumbsA },
-      { date: dateB, score: nightB.score, night: nightB.night, thumbnailDataUrls: thumbsB },
+      { date: dateA, score: nightA.score, night: nightA.night, sleepFactors: factorsA.sleep_factors, notes: nightA.annotation?.notes, thumbnailDataUrls: thumbsA },
+      { date: dateB, score: nightB.score, night: nightB.night, sleepFactors: factorsB.sleep_factors, notes: nightB.annotation?.notes, thumbnailDataUrls: thumbsB },
       adjAge,
       p.tzOffset,
       profilePromptBlock(profile),
@@ -352,7 +355,16 @@ router.get('/:babyUid/sleep/schedule-optimizer', requireToken, async (req, res) 
     }
 
     const { recommendSchedule } = await import('../services/schedule-optimizer.js');
-    const history = (await loadScoredNights(p)).map(toHistoryPoint);
+    const scored = await loadScoredNights(p);
+    const oldestSeed = scored.length > 0 && !Array.isArray(scored[0].annotation?.sleep_factors)
+      ? (await resolveNightSleepFactors(p.babyUid, scored[0].date, scored[0].annotation, { persist: false })).sleep_factors
+      : [];
+    const effectiveFactors = applySleepFactorCarryover(scored, oldestSeed);
+    const history = scored.map((n, i) => ({
+      ...toHistoryPoint(n),
+      sleep_factors: effectiveFactors[i],
+      notes: n.annotation?.notes,
+    }));
     const adjAge = getAdjustedAgeMonths(p.birthdate, p.prematureWeeks);
     await consumeAiBudget(p.babyUid, 'schedule');
     const recommendation = await recommendSchedule(history, adjAge, p.bedtimeHour, p.wakeHour, p.tzOffset);
@@ -410,7 +422,9 @@ router.put('/:babyUid/sleep/:nightId', requireToken, async (req, res) => {
     const hasOverrides = Object.keys(overrides).length > 0;
 
     let sleepFactors: string[] | undefined = existing?.sleep_factors;
+    let sleepFactorsInheritedFrom: string | undefined = existing?.sleep_factors_inherited_from;
     if ('sleep_factors' in body) {
+      sleepFactorsInheritedFrom = undefined;
       if (Array.isArray(body.sleep_factors)) {
         sleepFactors = Array.from(new Set<string>(
           (body.sleep_factors as unknown[])
@@ -442,6 +456,7 @@ router.put('/:babyUid/sleep/:nightId', requireToken, async (req, res) => {
       ...(notes && { notes }),
       ...(hasOverrides && { wake_overrides: overrides }),
       ...(hasSleepFactors && { sleep_factors: sleepFactors }),
+      ...(sleepFactorsInheritedFrom && { sleep_factors_inherited_from: sleepFactorsInheritedFrom }),
       updated_at: Date.now(),
     };
     await store.saveAnnotation(annotation);

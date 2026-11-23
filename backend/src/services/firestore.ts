@@ -66,13 +66,16 @@ interface CachedInsight {
   created_at: number;
 }
 
-export async function getCachedInsight<T extends CachedInsightValue = NightInsights>(babyUid: string, nightKey: string): Promise<T | null> {
+export async function getCachedInsight<T extends CachedInsightValue = NightInsights>(
+  babyUid: string,
+  nightKey: string,
+  maxAgeMs: number | null = 24 * 60 * 60 * 1000,
+): Promise<T | null> {
   const docId = `${babyUid}:${nightKey}`;
   const doc = await insightsCol().doc(docId).get();
   if (!doc.exists) return null;
   const data = doc.data() as CachedInsight;
-  // Cache expires after 24 hours
-  if (Date.now() - data.created_at > 24 * 60 * 60 * 1000) return null;
+  if (maxAgeMs !== null && Date.now() - data.created_at > maxAgeMs) return null;
   return data.insights as T;
 }
 

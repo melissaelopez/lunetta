@@ -149,6 +149,16 @@ export function adjustedAgeMonths(birthdateStr: string, prematureWeeks: number):
   return Math.max(0, chronologicalMonths - adjustmentMonths);
 }
 
+/** Format a decimal hour (e.g. 19.5) as "7:30 PM" (wraps cleanly past 24). */
+export function formatHourLabel(h: number): string {
+  const normalized = ((h % 24) + 24) % 24;
+  const whole = Math.floor(normalized);
+  const mins = Math.round((normalized - whole) * 60);
+  const ampm = whole >= 12 ? 'PM' : 'AM';
+  const h12 = whole === 0 ? 12 : whole > 12 ? whole - 12 : whole;
+  return `${h12}:${String(mins).padStart(2, '0')} ${ampm}`;
+}
+
 /**
  * Given a date string (YYYY-MM-DD) and sleep settings,
  * returns the unix timestamps for the night window.
@@ -156,8 +166,13 @@ export function adjustedAgeMonths(birthdateStr: string, prematureWeeks: number):
  */
 export function nightWindow(dateStr: string, settings: SleepSettings): { start: number; end: number } {
   const [year, month, day] = dateStr.split('-').map(Number);
-  const nightStart = new Date(year, month - 1, day, settings.bedtimeHour, 0, 0);
-  const nightEnd = new Date(year, month - 1, day + 1, settings.wakeHour + 4, 0, 0);
+  const bedH = Math.floor(settings.bedtimeHour);
+  const bedM = Math.round((settings.bedtimeHour - bedH) * 60);
+  const endTotal = settings.wakeHour + 4;
+  const endH = Math.floor(endTotal);
+  const endM = Math.round((endTotal - endH) * 60);
+  const nightStart = new Date(year, month - 1, day, bedH, bedM, 0);
+  const nightEnd = new Date(year, month - 1, day + 1, endH, endM, 0);
   return {
     start: Math.floor(nightStart.getTime() / 1000),
     end: Math.floor(nightEnd.getTime() / 1000),

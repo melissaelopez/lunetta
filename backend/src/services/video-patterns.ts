@@ -7,6 +7,8 @@ export interface NightWithEvents {
   total_sleep_minutes: number;
   wake_count: number;
   longest_stretch_minutes: number;
+  sleep_factors?: string[];
+  notes?: string;
   events: { key: string; title: string; time: number; thumbnail_url?: string }[];
 }
 
@@ -114,7 +116,10 @@ export async function analyzeLongTermPatterns(
 
   const nightsSummary = nights.map(n => {
     const imagesForNight = validPairs.filter(p => p.night.date === n.date).length;
-    return `  ${n.date}: Score ${n.score}, ${Math.floor(n.total_sleep_minutes / 60)}h${n.total_sleep_minutes % 60}m sleep, ${n.wake_count} wakes, longest ${Math.floor(n.longest_stretch_minutes / 60)}h stretch (${imagesForNight} images attached)`;
+    const factors = n.sleep_factors?.length ? `, factors: [${n.sleep_factors.join('; ')}]` : '';
+    const noteText = n.notes ? n.notes.replace(/\s+/g, ' ').trim().slice(0, 180) : '';
+    const note = noteText ? `, note: "${noteText}"` : '';
+    return `  ${n.date}: Score ${n.score}, ${Math.floor(n.total_sleep_minutes / 60)}h${n.total_sleep_minutes % 60}m sleep, ${n.wake_count} wakes, longest ${Math.floor(n.longest_stretch_minutes / 60)}h stretch${factors}${note} (${imagesForNight} images attached)`;
   }).join('\n');
 
   const prompt = `Analyze multiple nights of baby monitor data to identify long-term patterns.

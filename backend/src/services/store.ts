@@ -15,8 +15,12 @@ export const saveAnnotation = store.saveAnnotation.bind(store);
 export const deleteAnnotation = store.deleteAnnotation.bind(store);
 export const getBabySettings = store.getBabySettings.bind(store);
 export const saveBabySettings = store.saveBabySettings.bind(store);
-export function getCachedInsight<T extends CachedInsightValue = NightInsights>(babyUid: string, nightKey: string): Promise<T | null> {
-  return store.getCachedInsight<T>(babyUid, nightKey);
+export function getCachedInsight<T extends CachedInsightValue = NightInsights>(
+  babyUid: string,
+  nightKey: string,
+  maxAgeMs?: number | null,
+): Promise<T | null> {
+  return store.getCachedInsight<T>(babyUid, nightKey, maxAgeMs);
 }
 export const cacheInsight = store.cacheInsight.bind(store);
 export const getCachedNights = store.getCachedNights.bind(store);

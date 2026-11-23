@@ -31,9 +31,28 @@ function ymd(y: number, m0: number, d: number): string {
   return `${y}-${String(m0 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
-/** Unix seconds for a local wall-clock date/hour. */
+/** Unix seconds for a local wall-clock date/hour (supports fractional hours like 19.5 for 7:30 PM). */
 export function localToUnix(y: number, m0: number, d: number, hour: number, tzOffset: number): number {
-  return Math.floor((Date.UTC(y, m0, d, hour, 0, 0) + tzOffset * 60 * 1000) / 1000);
+  const wholeHour = Math.floor(hour);
+  const mins = Math.round((hour - wholeHour) * 60);
+  return Math.floor((Date.UTC(y, m0, d, wholeHour, mins, 0) + tzOffset * 60 * 1000) / 1000);
+}
+
+/** Parse a query/body hour parameter supporting half-hour increments (e.g. 19.5 -> 7:30 PM). */
+export function parseHourParam(raw: unknown, fallback: number): number {
+  const n = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''));
+  if (!Number.isFinite(n)) return fallback;
+  const clamped = Math.min(23.5, Math.max(0, n));
+  return Math.round(clamped * 2) / 2;
+}
+
+/** Parse an optional hour parameter (returns undefined when absent/invalid). */
+export function parseOptionalHourParam(raw: unknown): number | undefined {
+  if (raw === undefined || raw === null || raw === '') return undefined;
+  const n = typeof raw === 'number' ? raw : parseFloat(String(raw));
+  if (!Number.isFinite(n)) return undefined;
+  const clamped = Math.min(23.5, Math.max(0, n));
+  return Math.round(clamped * 2) / 2;
 }
 
 export interface NightWindow {

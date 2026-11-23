@@ -9,7 +9,23 @@ import type { VideoPatternsResult } from './video-patterns.js';
 import type { AudioAnalysis } from './audio-analysis.js';
 import type { ScheduleRecommendation } from './schedule-optimizer.js';
 
-export type CachedInsightValue = NightInsights | VideoAnalysis | VideoPatternsResult | AudioAnalysis | ScheduleRecommendation;
+export interface LiveCachedInsight {
+  insights: NightInsights;
+  generated_at: number;
+  sleep_minutes: number;
+  wake_count: number;
+  annotation_updated_at: number;
+  factors_fingerprint: string;
+  profile_updated_at: number;
+}
+
+export type CachedInsightValue =
+  | NightInsights
+  | LiveCachedInsight
+  | VideoAnalysis
+  | VideoPatternsResult
+  | AudioAnalysis
+  | ScheduleRecommendation;
 
 export interface BabySettings {
   baby_uid: string;
@@ -97,7 +113,7 @@ export interface Storage {
   deleteAnnotation(babyUid: string, nightKey: string): Promise<void>;
   getBabySettings(babyUid: string): Promise<BabySettings | null>;
   saveBabySettings(settings: BabySettings): Promise<void>;
-  getCachedInsight<T extends CachedInsightValue = NightInsights>(babyUid: string, nightKey: string): Promise<T | null>;
+  getCachedInsight<T extends CachedInsightValue = NightInsights>(babyUid: string, nightKey: string, maxAgeMs?: number | null): Promise<T | null>;
   cacheInsight(babyUid: string, nightKey: string, insights: CachedInsightValue): Promise<void>;
   getCachedNights(babyUid: string, start: number, end: number): Promise<NightSummary[] | null>;
   cacheNights(babyUid: string, start: number, end: number, nights: NightSummary[]): Promise<void>;

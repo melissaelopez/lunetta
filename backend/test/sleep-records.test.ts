@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { computeAllTimeRecords, shiftDateStr } from '../src/services/sleep-records.js';
+import { nightWindowFromDateStr, parseHourParam } from '../src/services/night-windows.js';
 
 test('computeAllTimeRecords returns null metrics for empty history', () => {
   const res = computeAllTimeRecords([], 12345);
@@ -36,4 +37,15 @@ test('shiftDateStr crosses month, year, and leap day boundaries accurately', () 
   assert.equal(shiftDateStr('2026-01-01', -1), '2025-12-31');
   assert.equal(shiftDateStr('2024-03-01', -1), '2024-02-29');
   assert.equal(shiftDateStr('2026-11-23', 10), '2026-12-03');
+});
+
+test('nightWindowFromDateStr and parseHourParam support half-hour increments accurately', () => {
+  assert.equal(parseHourParam('19.5', 19), 19.5);
+  assert.equal(parseHourParam('7.5', 8), 7.5);
+  assert.equal(parseHourParam('bad', 19), 19);
+
+  // Night of 2026-11-22 in UTC (tzOffset = 0): 19:30 -> next day 11:30 (7.5 + 4h buffer)
+  const w = nightWindowFromDateStr('2026-11-22', 19.5, 7.5, 0);
+  assert.equal(new Date(w.start * 1000).toISOString(), '2026-11-22T19:30:00.000Z');
+  assert.equal(new Date(w.end * 1000).toISOString(), '2026-11-23T11:30:00.000Z');
 });

@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import * as nanit from '../services/nanit-client.js';
 import { getAdjustedAgeMonths } from '../services/sleep-scorer.js';
-import { chatAboutNight, generateNightInsights, type NightInsights } from '../services/ai-insights.js';
+import { chatAboutNight, evaluateLiveInsightStaleness, generateNightInsights, type NightInsights } from '../services/ai-insights.js';
 import { loadScoredNights, scoreWindow } from '../services/night-history.js';
-import { localDateStr, localHour } from '../services/night-windows.js';
+import { localDateStr, localHour, parseHourParam } from '../services/night-windows.js';
 import { requireToken } from '../middleware/auth.js';
 import { handleRouteError } from '../middleware/errorHandler.js';
 import * as store from '../services/store.js';
@@ -12,7 +12,7 @@ import { getBabyProfile, profilePromptBlock } from '../services/baby-context.js'
 import { dayPromptBlock, loadDays, napExpectations } from '../services/daytime.js';
 import { isGeminiConfigured, resolveGeminiChatModel } from '../services/gemini-adapter.js';
 import { applySleepFactorCarryover, resolveNightSleepFactors } from '../services/sleep-factors.js';
-import type { PersistedChatMessage } from '../services/storage.js';
+import type { LiveCachedInsight, PersistedChatMessage } from '../services/storage.js';
 
 const INSIGHTS_HISTORY_DAYS = 14;
 const MAX_PERSISTED_CHAT_MESSAGES = 200;
@@ -48,8 +48,8 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
     const end = parseInt(String(req.query.end));
     const birthdate = String(req.query.birthdate || '');
     const prematureWeeks = parseInt(String(req.query.premature_weeks)) || 0;
-    const bedtimeHour = parseInt(String(req.query.bedtime_hour)) || 19;
-    const wakeHour = parseInt(String(req.query.wake_hour)) || 8;
+    const bedtimeHour = parseHourParam(req.query.bedtime_hour, 19);
+    const wakeHour = parseHourParam(req.query.wake_hour, 8);
     const tzOffset = parseInt(String(req.query.tz_offset)) || 0;
     const force = req.query.force === 'true';
 
@@ -78,13 +78,37 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
     const resolvedCurrentFactors = await resolveNightSleepFactors(babyUid, currentDate, current.annotation);
     const factorsFingerprint = resolvedCurrentFactors.sleep_factors.join('|');
 
-    // Check storage cache — skip for in-progress nights and forced regenerations.
-    // The key includes the annotation timestamp + effective sleep factors so edits or carry-over changes invalidate it.
-    const nightKey = `${start}:v9:${current.annotation?.updated_at ?? 0}:p${profile.updated_at}:f${factorsFingerprint}`;
-    if (!force && !isInProgress) {
-      const cached = await store.getCachedInsight(babyUid, nightKey).catch(() => null);
-      if (cached) {
-        res.json({ insights: cached, provider: 'gemini', using_user_key: !!userGeminiKey });
+    // Check persistent storage cache unless forced.
+    // Both Tonight (live) and completed nights use stable per-date cache keys so revisits,
+    // auto-refreshes, and editing sleep factors/notes never silently burn Gemini tokens;
+    // instead they return the cached insight with `generated_at` + `stale` status until the
+    // parent clicks Reload.
+    const cacheKey = isInProgress ? `live:${currentDate}:v9` : `night:${currentDate}:v9`;
+    if (!force) {
+      const cachedSnap = await store.getCachedInsight<LiveCachedInsight>(babyUid, cacheKey, null).catch(() => null);
+      if (cachedSnap?.insights?.summary) {
+        const staleness = evaluateLiveInsightStaleness(
+          cachedSnap,
+          {
+            sleepMinutes: current.score.details.total_sleep_minutes,
+            wakeCount: current.score.details.wake_count,
+            annotationUpdatedAt: current.annotation?.updated_at ?? 0,
+            factorsFingerprint,
+            profileUpdatedAt: profile.updated_at,
+          },
+          Date.now(),
+          { checkAge: isInProgress },
+        );
+        res.json({
+          insights: cachedSnap.insights,
+          in_progress: isInProgress,
+          cached: true,
+          generated_at: cachedSnap.generated_at,
+          stale: staleness.stale,
+          stale_reason: staleness.reason,
+          provider: 'gemini',
+          using_user_key: !!userGeminiKey,
+        });
         return;
       }
     }
@@ -103,7 +127,7 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
         .catch(err => { console.log(`[insights] daytime context failed: ${err.message}`); return ''; }),
     ]);
     const oldestSeed = recent.length > 0 && !Array.isArray(recent[0].annotation?.sleep_factors)
-      ? (await resolveNightSleepFactors(babyUid, recent[0].date, recent[0].annotation)).sleep_factors
+      ? (await resolveNightSleepFactors(babyUid, recent[0].date, recent[0].annotation, { persist: false })).sleep_factors
       : [];
     const recentEffectiveFactors = applySleepFactorCarryover(recent, oldestSeed);
     const recentNights = recent.map((n, i) => ({
@@ -164,11 +188,28 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
       return;
     }
 
-    if (!isInProgress) {
-      await store.cacheInsight(babyUid, nightKey, insights).catch(() => {});
-    }
+    const generatedAt = Date.now();
+    const snapshot: LiveCachedInsight = {
+      insights,
+      generated_at: generatedAt,
+      sleep_minutes: current.score.details.total_sleep_minutes,
+      wake_count: current.score.details.wake_count,
+      annotation_updated_at: current.annotation?.updated_at ?? 0,
+      factors_fingerprint: factorsFingerprint,
+      profile_updated_at: profile.updated_at,
+    };
+    await store.cacheInsight(babyUid, cacheKey, snapshot).catch(() => {});
 
-    res.json({ insights, in_progress: isInProgress, provider: 'gemini', using_user_key: !!userGeminiKey });
+    res.json({
+      insights,
+      in_progress: isInProgress,
+      cached: false,
+      generated_at: generatedAt,
+      stale: false,
+      stale_reason: null,
+      provider: 'gemini',
+      using_user_key: !!userGeminiKey,
+    });
   } catch (err: any) {
     handleRouteError(res, err, 'insights_failed');
   }
@@ -237,8 +278,8 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
     const end = parseInt(String(body.end));
     const birthdate = String(body.birthdate || '');
     const prematureWeeks = parseInt(String(body.premature_weeks)) || 0;
-    const bedtimeHour = parseInt(String(body.bedtime_hour)) || 19;
-    const wakeHour = parseInt(String(body.wake_hour)) || 8;
+    const bedtimeHour = parseHourParam(body.bedtime_hour, 19);
+    const wakeHour = parseHourParam(body.wake_hour, 8);
     const tzOffset = parseInt(String(body.tz_offset)) || 0;
     const rawMessages = Array.isArray(body.messages) ? body.messages : [];
     const existingInsights = (body.current_insights ?? null) as NightInsights | null;
@@ -290,7 +331,7 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
     ]);
 
     const oldestSeed = recent.length > 0 && !Array.isArray(recent[0].annotation?.sleep_factors)
-      ? (await resolveNightSleepFactors(babyUid, recent[0].date, recent[0].annotation)).sleep_factors
+      ? (await resolveNightSleepFactors(babyUid, recent[0].date, recent[0].annotation, { persist: false })).sleep_factors
       : [];
     const recentEffectiveFactors = applySleepFactorCarryover(recent, oldestSeed);
 

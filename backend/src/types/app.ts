@@ -57,6 +57,8 @@ export interface SleepAnnotation {
   wake_overrides?: Record<string, WakeResponse>;
   /** Parent-logged sleep factors for this night (e.g. swaddle/sleep sack type, dream feed, white noise). */
   sleep_factors?: string[];
+  /** Date (YYYY-MM-DD) these factors were carried over from; cleared once explicitly edited on this night. */
+  sleep_factors_inherited_from?: string;
   updated_at: number;
 }
 

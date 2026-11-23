@@ -60,9 +60,10 @@ export function SleepFactorsCard({
   const serverFactors = hasExplicitFactors
     ? (night!.annotation!.sleep_factors ?? [])
     : (night?.inherited_sleep_factors ?? []);
-  const serverInheritedFrom = !hasExplicitFactors && night?.inherited_sleep_factors?.length
-    ? (night.inherited_sleep_factors_from ?? null)
-    : null;
+  const serverInheritedFrom = night?.annotation?.sleep_factors_inherited_from
+    ?? (!hasExplicitFactors && night?.inherited_sleep_factors?.length
+      ? (night.inherited_sleep_factors_from ?? null)
+      : null);
   const serverNotes = night?.annotation?.notes ?? '';
   const serverKey = `${night?.night_id ?? nightDate}:${hasExplicitFactors ? '1' : '0'}:${serverFactors.join('|')}:${serverInheritedFrom ?? ''}:${serverNotes}`;
 

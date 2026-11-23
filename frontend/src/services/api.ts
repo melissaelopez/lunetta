@@ -617,6 +617,10 @@ export interface NightInsightsResult {
   insights: NightInsights | null;
   needsApiKey: boolean;
   usingUserKey: boolean;
+  cached?: boolean;
+  generatedAt?: number | null;
+  stale?: boolean;
+  staleReason?: string | null;
 }
 
 export async function getInsights(
@@ -669,6 +673,10 @@ export async function getInsights(
     insights,
     needsApiKey: false,
     usingUserKey: !!data.using_user_key,
+    cached: !!data.cached,
+    generatedAt: typeof data.generated_at === 'number' ? data.generated_at : null,
+    stale: !!data.stale,
+    staleReason: typeof data.stale_reason === 'string' ? data.stale_reason : null,
   };
 }
 
