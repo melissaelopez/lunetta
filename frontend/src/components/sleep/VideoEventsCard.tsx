@@ -69,8 +69,8 @@ export function VideoEventsCard({ baby, prematureWeeks, nightStart, nightEnd, ni
     if (!baby) return;
     setLoading(true);
     setError(null);
-    // Fetch more events (100) so older nights still have events available — Nanit returns newest first
-    api.getVideoEvents(baby.uid, 100)
+    // Fetch up to 500 events so ~2 weeks of nights have clips available — Nanit returns newest first
+    api.getVideoEvents(baby.uid, 500, attempt > 0)
       .then(data => setAllEvents((data.events || []).filter((e: NanitEvent) => e.clip)))
       .catch(err => { setAllEvents([]); setError(errorMessage(err)); })
       .finally(() => setLoading(false));

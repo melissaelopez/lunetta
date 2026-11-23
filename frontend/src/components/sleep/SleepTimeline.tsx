@@ -3,6 +3,15 @@ import { Loader2, Play, Video } from 'lucide-react';
 import { Card } from '../common/Card';
 import { formatDuration } from '../../utils/date';
 import { errorMessage } from '../../utils/errors';
+import {
+  formatClipOffset,
+  getClipThumb,
+  getClipUrl,
+  matchClipsForBar,
+  matchClipsForCheckIn,
+  matchClipsForStretch,
+  type TimelineVideoEvent,
+} from '../../utils/timelineClips';
 import * as api from '../../services/api';
 import type { Baby, ScoredNight, WakeDetail, WakeResponse } from '../../types';
 
@@ -18,22 +27,6 @@ interface Props {
   onSaved?: () => void;
 }
 
-interface TimelineVideoEvent {
-  uid: string;
-  key: string;
-  title: string;
-  time: number;
-  clip?: boolean;
-  url?: string;
-  media_urls?: {
-    clip?: string;
-    thumbnail?: string;
-  };
-  raw_videos?: {
-    media_segments?: { video_url: string }[];
-  };
-}
-
 interface Bar {
   id: string;
   kind: 'sleep' | 'awake';
@@ -43,12 +36,14 @@ interface Bar {
   width: number;
   label: string;
   wake?: WakeDetail;
+  isFirstSleep?: boolean;
+  hasFollowingWake?: boolean;
 }
 
-const CLIP_MATCH_SLACK_SEC = 120;
+const VIDEO_FEED_LIMIT = 500;
 
-function getClipUrl(e: TimelineVideoEvent): string | null {
-  return e.media_urls?.clip || e.url || e.raw_videos?.media_segments?.[0]?.video_url || null;
+function formatShortDate(unix: number): string {
+  return new Date(unix * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
 const WAKE_STYLE: Record<WakeResponse, { bar: string; dot: string; label: string }> = {
@@ -76,29 +71,42 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [videoEvents, setVideoEvents] = useState<TimelineVideoEvent[]>([]);
+  const [oldestClipTime, setOldestClipTime] = useState<number | null>(null);
   const [eventsLoaded, setEventsLoaded] = useState(false);
   const [activeClipUid, setActiveClipUid] = useState<string | null>(null);
   const [playingClipUid, setPlayingClipUid] = useState<string | null>(null);
 
+  // Clear stale selection when switching to a different night
+  useEffect(() => {
+    setSelected(null);
+    setActiveClipUid(null);
+    setPlayingClipUid(null);
+  }, [sleepScore?.night_id]);
+
   useEffect(() => {
     if (!baby) return;
     let cancelled = false;
-    api.getVideoEvents(baby.uid, 100)
+    api.getVideoEvents(baby.uid, VIDEO_FEED_LIMIT)
       .then(data => {
         if (cancelled) return;
-        const clips = ((data?.events ?? []) as TimelineVideoEvent[])
-          .filter(e => typeof e.time === 'number' && (getClipUrl(e) || e.media_urls?.thumbnail))
+        const raw = ((data?.events ?? []) as TimelineVideoEvent[]).filter(e => typeof e.time === 'number');
+        const clips = raw
+          .filter(e => e.clip || getClipUrl(e) || getClipThumb(e))
           .sort((a, b) => a.time - b.time);
         setVideoEvents(clips);
+        setOldestClipTime(clips.length > 0 ? clips[0].time : null);
       })
       .catch(() => {
-        if (!cancelled) setVideoEvents([]);
+        if (!cancelled) {
+          setVideoEvents([]);
+          setOldestClipTime(null);
+        }
       })
       .finally(() => {
         if (!cancelled) setEventsLoaded(true);
       });
     return () => { cancelled = true; };
-  }, [baby]);
+  }, [baby, sleepScore?.night_end]);
 
   const { bars, hours, checkIns, longestStretch } = useMemo(() => {
     const empty = {
@@ -119,8 +127,12 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
     const wakes: WakeDetail[] = sleepScore.details.wakes
       ?? (sleepScore.gaps || []).map(g => ({ ...g, response: 'unknown' as const, source: 'nanit' as const, visit_times: [] }));
 
+    const realWakes = wakes.filter(w => w.response !== 'asleep');
+    const sortedSegments = [...sleepScore.segments].sort((a, b) => a.begin_ts - b.begin_ts);
+    const firstSleepStart = sortedSegments[0]?.begin_ts;
+
     const bars: Bar[] = [
-      ...sleepScore.segments.map(seg => ({
+      ...sortedSegments.map(seg => ({
         id: `s${seg.begin_ts}`,
         kind: 'sleep' as const,
         start: seg.begin_ts,
@@ -128,6 +140,8 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
         left: pos(seg.begin_ts),
         width: ((seg.end_ts - seg.begin_ts) / total) * 100,
         label: `Asleep ${formatDuration((seg.end_ts - seg.begin_ts) / 60)} · ${formatTime(seg.begin_ts)}–${formatTime(seg.end_ts)}`,
+        isFirstSleep: seg.begin_ts === firstSleepStart,
+        hasFollowingWake: realWakes.some(w => Math.abs(w.start - seg.end_ts) <= 60),
       })),
       ...wakes.map(w => ({
         id: `w${w.start}`,
@@ -189,23 +203,34 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
   const selectedCheckIn = selected?.startsWith('c') ? checkIns[Number(selected.slice(1))] : null;
   const selectedStretch = selected === 'longest-stretch' ? longestStretch : null;
 
-  const matchingClips = useMemo(() => {
-    if (!videoEvents.length) return [];
-    let rangeStart: number | null = null;
-    let rangeEnd: number | null = null;
-    if (selectedBar) {
-      rangeStart = selectedBar.start - CLIP_MATCH_SLACK_SEC;
-      rangeEnd = selectedBar.end + CLIP_MATCH_SLACK_SEC;
-    } else if (selectedCheckIn) {
-      rangeStart = selectedCheckIn.time - CLIP_MATCH_SLACK_SEC;
-      rangeEnd = selectedCheckIn.time + CLIP_MATCH_SLACK_SEC;
-    } else if (selectedStretch) {
-      rangeStart = selectedStretch.start - CLIP_MATCH_SLACK_SEC;
-      rangeEnd = selectedStretch.end + CLIP_MATCH_SLACK_SEC;
+  const selectedRange = useMemo(() => {
+    if (selectedBar) return { start: selectedBar.start, end: selectedBar.end };
+    if (selectedCheckIn) return { start: selectedCheckIn.time, end: selectedCheckIn.time };
+    if (selectedStretch) return { start: selectedStretch.start, end: selectedStretch.end };
+    return null;
+  }, [selectedBar, selectedCheckIn, selectedStretch]);
+
+  const { matchingClips, isNearbyFallback } = useMemo(() => {
+    if (!videoEvents.length) {
+      return { matchingClips: [] as TimelineVideoEvent[], isNearbyFallback: false };
     }
-    if (rangeStart === null || rangeEnd === null) return [];
-    return videoEvents.filter(e => e.time >= rangeStart! && e.time <= rangeEnd!);
-  }, [videoEvents, selectedBar, selectedCheckIn, selectedStretch]);
+    if (selectedBar) {
+      const res = matchClipsForBar(videoEvents, selectedBar);
+      return { matchingClips: res.clips, isNearbyFallback: res.isNearbyFallback };
+    }
+    if (selectedCheckIn) {
+      const res = matchClipsForCheckIn(videoEvents, selectedCheckIn.time);
+      return { matchingClips: res.clips, isNearbyFallback: res.isNearbyFallback };
+    }
+    if (selectedStretch && sleepScore) {
+      const realWakes = (sleepScore.details.wakes ?? []).filter(w => w.response !== 'asleep');
+      const isFirstSleep = Math.abs(selectedStretch.start - sleepScore.night_start) <= 60;
+      const hasFollowingWake = realWakes.some(w => Math.abs(w.start - selectedStretch.end) <= 60);
+      const res = matchClipsForStretch(videoEvents, selectedStretch.start, selectedStretch.end, isFirstSleep, hasFollowingWake);
+      return { matchingClips: res.clips, isNearbyFallback: res.isNearbyFallback };
+    }
+    return { matchingClips: [] as TimelineVideoEvent[], isNearbyFallback: false };
+  }, [videoEvents, selectedBar, selectedCheckIn, selectedStretch, sleepScore]);
 
   if (loading) {
     return (
@@ -256,6 +281,11 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
 
   const activeClip = matchingClips.find(c => c.uid === activeClipUid) ?? matchingClips[0] ?? null;
   const activeClipUrl = activeClip ? getClipUrl(activeClip) : null;
+  const activeClipThumb = activeClip ? getClipThumb(activeClip) : null;
+  const activeClipOffset = activeClip && isNearbyFallback && selectedRange
+    ? formatClipOffset(activeClip, selectedRange.start, selectedRange.end)
+    : null;
+  const isOlderThanClips = !!(selectedRange && oldestClipTime !== null && selectedRange.end < oldestClipTime);
   const hasSelection = !!(selectedBar || selectedCheckIn || selectedStretch);
 
   return (
@@ -402,13 +432,18 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
                       {activeClip.key.replace(/_/g, ' ')}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400">{formatTime(activeClip.time)}</span>
+                    {activeClipOffset && (
+                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+                        Nearby · {activeClipOffset}
+                      </span>
+                    )}
                     {activeClip.title && (
                       <span className="truncate text-[11px] text-slate-600 dark:text-slate-300">{activeClip.title}</span>
                     )}
                   </div>
                   {matchingClips.length > 1 && (
                     <span className="text-[10px] text-slate-400">
-                      {matchingClips.length} clips in this section
+                      {matchingClips.length} {isNearbyFallback ? 'nearby clips' : 'clips in this section'}
                     </span>
                   )}
                 </div>
@@ -430,9 +465,9 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
                     onClick={() => activeClipUrl && setPlayingClipUid(activeClip.uid)}
                     className="group relative block w-full overflow-hidden rounded-lg bg-black/90 text-left disabled:cursor-default"
                   >
-                    {activeClip.media_urls?.thumbnail ? (
+                    {activeClipThumb ? (
                       <img
-                        src={activeClip.media_urls.thumbnail}
+                        src={activeClipThumb}
                         alt={activeClip.title || activeClip.key}
                         className="max-h-48 w-full object-contain opacity-90 transition group-hover:opacity-100"
                       />
@@ -456,6 +491,7 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
                   <div data-no-tab-swipe className="flex gap-1.5 overflow-x-auto pb-0.5">
                     {matchingClips.map(clip => {
                       const isCurrent = clip.uid === activeClip.uid;
+                      const thumb = getClipThumb(clip);
                       return (
                         <button
                           key={clip.uid}
@@ -470,8 +506,8 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
                               : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
                           }`}
                         >
-                          {clip.media_urls?.thumbnail && (
-                            <img src={clip.media_urls.thumbnail} alt="" className="h-5 w-7 rounded object-cover" />
+                          {thumb && (
+                            <img src={thumb} alt="" className="h-5 w-7 rounded object-cover" />
                           )}
                           <span className="font-medium">{clip.key.replace(/_/g, ' ')}</span>
                           <span className="text-slate-400">{formatTime(clip.time)}</span>
@@ -483,8 +519,10 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
               </div>
             ) : (
               <p className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                <Video size={12} />
-                No video clip available for this section
+                <Video size={12} className="shrink-0" />
+                {isOlderThanClips && oldestClipTime !== null
+                  ? `Older than Nanit's available clip history (oldest clip available: ${formatShortDate(oldestClipTime)})`
+                  : 'No Nanit clip recorded near this section (clips only save on motion, sound, or visits)'}
               </p>
             )}
           </div>

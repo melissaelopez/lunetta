@@ -36,7 +36,8 @@ router.get('/:babyUid/video/events', requireToken, async (req, res) => {
   try {
     const token = (req as any).nanitToken;
     const babyUid = String(req.params.babyUid);
-    const limit = parseInt(String(req.query.limit)) || 20;
+    const rawLimit = parseInt(String(req.query.limit), 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(500, Math.max(1, rawLimit)) : 20;
     const data = await nanit.getEvents(token, babyUid, limit);
     res.json(data);
   } catch (err: any) {

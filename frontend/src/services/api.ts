@@ -173,6 +173,7 @@ export async function loginMfa(
 export function logout() {
   clearTokens();
   clearGeminiKey();
+  videoEventsCache.clear();
   window.location.href = '/login';
 }
 
@@ -798,10 +799,28 @@ export async function getEvents(babyUid: string, type?: string, limit = 100): Pr
   return data.messages || [];
 }
 
-// Video events (with clip URLs)
-export async function getVideoEvents(babyUid: string, limit = 20): Promise<any> {
-  const res = await authFetch(`${BASE}/babies/${babyUid}/video/events?limit=${limit}`);
-  return res.json();
+// Video events (with clip URLs) — cached briefly so SleepTimeline and VideoEventsCard share one fetch
+const VIDEO_EVENTS_CACHE_TTL_MS = 2 * 60 * 1000;
+const videoEventsCache = new Map<string, { at: number; promise: Promise<any> }>();
+
+export function getVideoEvents(babyUid: string, limit = 20, force = false): Promise<any> {
+  const key = `${babyUid}:${limit}`;
+  const hit = !force ? videoEventsCache.get(key) : undefined;
+  if (hit && Date.now() - hit.at < VIDEO_EVENTS_CACHE_TTL_MS) return hit.promise;
+
+  const promise = authFetch(`${BASE}/babies/${babyUid}/video/events?limit=${limit}`)
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Could not load video events');
+      return data;
+    })
+    .catch(err => {
+      videoEventsCache.delete(key);
+      throw err;
+    });
+
+  videoEventsCache.set(key, { at: Date.now(), promise });
+  return promise;
 }
 
 export async function analyzeVideoClip(
