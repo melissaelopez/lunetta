@@ -20,7 +20,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-[#0b0d24]">
       <div className="w-full max-w-sm">
         <h1 className="mb-8 text-center text-3xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
           Lunetta

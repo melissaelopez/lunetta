@@ -3,14 +3,33 @@ import { FeedbackDialog } from '../common/FeedbackDialog';
 import { useState, useEffect } from 'react';
 import { logout } from '../../services/api';
 
+const THEME_STORAGE_KEY = 'lunetta_theme_v2';
+
 export function Nav() {
-  const [dark, setDark] = useState(() => localStorage.getItem('lunetta_theme') === 'dark');
+  const [dark, setDark] = useState(() => {
+    try {
+      return localStorage.getItem(THEME_STORAGE_KEY) !== 'light';
+    } catch {
+      return true;
+    }
+  });
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('lunetta_theme', dark ? 'dark' : 'light');
   }, [dark]);
+
+  const toggleTheme = () => {
+    setDark(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, next ? 'dark' : 'light');
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur dark:border-indigo-900/50 dark:bg-[#0e102b]/85">
@@ -27,8 +46,9 @@ export function Nav() {
             <MessageSquare size={18} /><span className="hidden sm:inline">Feedback</span>
           </button>
           <button
-            onClick={() => setDark(!dark)}
+            onClick={toggleTheme}
             className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
