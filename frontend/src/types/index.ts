@@ -28,6 +28,7 @@ export interface SleepAnnotation {
   custom_end_time?: number;
   notes?: string;
   wake_overrides?: Record<string, WakeResponse>;
+  sleep_factors?: string[];
   updated_at: number;
 }
 

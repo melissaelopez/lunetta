@@ -196,6 +196,7 @@ export interface BabySettings {
   wake_hour?: number;
   premature_weeks?: number;
   normal_wake_minutes?: number | null;
+  custom_sleep_factors?: string[];
   milestones?: {
     rolls_back_to_belly?: boolean;
     rolls_belly_to_back?: boolean;
@@ -286,6 +287,21 @@ export async function setWakeOverride(
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Could not save');
+  return data.annotation ?? null;
+}
+
+/** Save the parent-selected sleep factors checklist for a night. */
+export async function setSleepFactors(
+  babyUid: string,
+  nightId: string,
+  sleepFactors: string[],
+): Promise<SleepAnnotation | null> {
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/${encodeURIComponent(nightId)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ sleep_factors: sleepFactors }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Could not save sleep factors');
   return data.annotation ?? null;
 }
 
@@ -588,6 +604,8 @@ export async function getInsights(
   };
 }
 
+export type GeminiChatModel = 'gemini-flash-latest' | 'gemini-pro-latest';
+
 export interface InsightsChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -603,7 +621,8 @@ export async function chatNightInsights(
   wakeHour: number,
   messages: InsightsChatMessage[],
   currentInsights?: NightInsights | null,
-): Promise<{ reply: string | null; needsApiKey: boolean }> {
+  model?: GeminiChatModel,
+): Promise<{ reply: string | null; needsApiKey: boolean; model?: string; contextDays?: number }> {
   const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/insights/chat`, {
     method: 'POST',
     headers: geminiHeaders(),
@@ -617,6 +636,7 @@ export async function chatNightInsights(
       tz_offset: new Date().getTimezoneOffset(),
       messages,
       current_insights: currentInsights ?? null,
+      ...(model ? { model } : {}),
     }),
   });
   const data = await res.json();
@@ -626,6 +646,8 @@ export async function chatNightInsights(
   return {
     reply: data.reply ?? null,
     needsApiKey: !!data.needs_api_key,
+    model: data.model,
+    contextDays: data.context_days,
   };
 }
 

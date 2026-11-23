@@ -169,6 +169,17 @@ export async function generateGeminiStructured<S extends z.ZodType>(
   return req.schema.parse(parsed);
 }
 
+export const GEMINI_CHAT_MODELS = ['gemini-flash-latest', 'gemini-pro-latest'] as const;
+export type GeminiChatModel = typeof GEMINI_CHAT_MODELS[number];
+
+export function resolveGeminiChatModel(requested?: string): string {
+  const trimmed = requested?.trim();
+  if (trimmed && (GEMINI_CHAT_MODELS as readonly string[]).includes(trimmed)) {
+    return trimmed;
+  }
+  return config.ai.provider === 'gemini' ? config.ai.model : config.gemini.model;
+}
+
 export interface GeminiChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -178,6 +189,7 @@ export interface GeminiChatRequest {
   label: string;
   system: string;
   messages: GeminiChatMessage[];
+  model?: string;
   maxTokens?: number;
   /** Optional per-request API key (e.g. from X-Gemini-Api-Key header). Never log, store, or cache. */
   apiKeyOverride?: string;
@@ -198,7 +210,7 @@ export async function generateGeminiChat(
     parts: [{ text: m.content }],
   }));
 
-  const modelName = config.ai.provider === 'gemini' ? config.ai.model : config.gemini.model;
+  const modelName = resolveGeminiChatModel(req.model);
   const started = Date.now();
   console.log(
     `[ai:gemini:${req.label}] ${modelName} turns=${contents.length} keySource=${userKey ? 'user' : 'server'}`,

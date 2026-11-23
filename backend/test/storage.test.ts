@@ -16,10 +16,10 @@ test('settings, annotations, caches and feedback survive reopen', async () => {
   const f = fixture();
   try {
     assert.equal(await f.storage.getBabySettings('baby'), null);
-    await f.storage.saveBabySettings({ baby_uid: 'baby', name: 'A', bedtime_hour: 19, updated_at: 1 });
+    await f.storage.saveBabySettings({ baby_uid: 'baby', name: 'A', bedtime_hour: 19, custom_sleep_factors: ['Zipadee-Zip'], updated_at: 1 });
     await f.storage.saveBabySettings({ baby_uid: 'baby', name: 'B', updated_at: 2 });
-    assert.deepEqual(await f.storage.getBabySettings('baby'), { baby_uid: 'baby', name: 'B', bedtime_hour: 19, updated_at: 2 });
-    const annotation = { baby_uid: 'baby', session_id: 'night', custom_start_time: 1, updated_at: 2 };
+    assert.deepEqual(await f.storage.getBabySettings('baby'), { baby_uid: 'baby', name: 'B', bedtime_hour: 19, custom_sleep_factors: ['Zipadee-Zip'], updated_at: 2 });
+    const annotation = { baby_uid: 'baby', session_id: 'night', custom_start_time: 1, sleep_factors: ['Arms out — Halo Easy Transition Sleep Sack'], updated_at: 2 };
     await f.storage.saveAnnotation(annotation);
     await f.storage.cacheInsight('baby', 'night', { summary: 'test' });
     assert.equal(await f.storage.getCachedInsight('baby', 'missing'), null);

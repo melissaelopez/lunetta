@@ -17,12 +17,13 @@ interface Props {
   bedtimeHour: number;
   wakeHour: number;
   hasSleepData: boolean;
+  annotationUpdatedAt?: number;
 }
 
 // Client-side cache to avoid re-fetching when navigating back
 const insightsCache = new Map<string, NightInsights>();
 
-export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, hasSleepData }: Props) {
+export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, hasSleepData, annotationUpdatedAt = 0 }: Props) {
   const [insights, setInsights] = useState<NightInsights | null>(null);
   const [needsApiKey, setNeedsApiKey] = useState(false);
   const [invalidKey, setInvalidKey] = useState(false);
@@ -38,7 +39,7 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
       return;
     }
 
-    const cacheKey = `${baby.uid}:${nightStart}`;
+    const cacheKey = `${baby.uid}:${nightStart}:${annotationUpdatedAt}`;
 
     if (!force) {
       const cached = insightsCache.get(cacheKey);
@@ -78,7 +79,7 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
       setLoading(false);
       setRegenerating(false);
     }
-  }, [baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, hasSleepData]);
+  }, [baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, hasSleepData, annotationUpdatedAt]);
 
   useEffect(() => {
     fetchInsights(false);

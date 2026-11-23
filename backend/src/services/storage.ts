@@ -20,6 +20,8 @@ export interface BabySettings {
   premature_weeks?: number;
   /** Custom normal night wake duration in minutes (null = use age-based default). */
   normal_wake_minutes?: number | null;
+  /** Reusable custom sleep factor options added by parents (e.g. new sleep sacks). */
+  custom_sleep_factors?: string[];
   milestones?: Partial<BabyMilestones>;
   sleepwear?: Sleepwear;
   pacifier?: boolean;

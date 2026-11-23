@@ -19,6 +19,7 @@ export interface SleepSettings {
   wakeHour: number;         // 0-23, default 8 (8 AM)
   prematureWeeks: number;   // 0-16, weeks born early (0 = full term)
   normalWakeMinutes: number | null; // null = use age-based default
+  customSleepFactors: string[];     // reusable custom nightly sleep factor options (e.g. new sleep sacks)
   milestones: BabyMilestones;
   sleepwear: Sleepwear;
   pacifier: boolean;
@@ -34,6 +35,7 @@ export const defaultSettings: SleepSettings = {
   wakeHour: 8,
   prematureWeeks: 0,
   normalWakeMinutes: null,
+  customSleepFactors: [],
   milestones: { rolls_back_to_belly: false, rolls_belly_to_back: false, sits_unassisted: false, pulls_to_stand: false },
   sleepwear: 'sleep_sack',
   pacifier: false,
@@ -61,6 +63,7 @@ function fromServer(s: api.BabySettings): Partial<SleepSettings> {
     ...(s.wake_hour != null && { wakeHour: s.wake_hour }),
     ...(s.premature_weeks != null && { prematureWeeks: s.premature_weeks }),
     ...('normal_wake_minutes' in s && { normalWakeMinutes: s.normal_wake_minutes ?? null }),
+    ...(Array.isArray(s.custom_sleep_factors) && { customSleepFactors: s.custom_sleep_factors }),
     ...(s.milestones && { milestones: { ...defaultSettings.milestones, ...s.milestones } }),
     ...(s.sleepwear && { sleepwear: s.sleepwear }),
     ...(s.pacifier != null && { pacifier: s.pacifier }),
@@ -76,6 +79,7 @@ function toServer(s: SleepSettings): Omit<api.BabySettings, 'baby_uid' | 'update
     wake_hour: s.wakeHour,
     premature_weeks: s.prematureWeeks,
     normal_wake_minutes: s.normalWakeMinutes,
+    custom_sleep_factors: s.customSleepFactors,
     milestones: s.milestones,
     sleepwear: s.sleepwear,
     pacifier: s.pacifier,

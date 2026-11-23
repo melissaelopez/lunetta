@@ -16,6 +16,7 @@ import { NightInProgressCard } from '../sleep/NightInProgressCard';
 import { VideoEventsCard } from '../sleep/VideoEventsCard';
 import { VideoPatternsCard } from '../sleep/VideoPatternsCard';
 import { MilestonesCard } from '../sleep/MilestonesCard';
+import { SleepFactorsCard } from '../sleep/SleepFactorsCard';
 import { RegressionAlertsBanner } from '../sleep/RegressionAlertsBanner';
 import { ScheduleOptimizerCard } from '../sleep/ScheduleOptimizerCard';
 import { NightComparisonCard } from '../sleep/NightComparisonCard';
@@ -247,6 +248,7 @@ export function Dashboard() {
             bedtimeHour={settings.bedtimeHour}
             wakeHour={settings.wakeHour}
             hasSleepData={!!sleepScore}
+            annotationUpdatedAt={sleepScore?.annotation?.updated_at}
           />
           <NightComparisonCard
             baby={baby}
@@ -397,7 +399,17 @@ export function Dashboard() {
                 onScoreLoaded={setLiveScore}
               />
             </div>
-            <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
+            <div className="col-span-full flex flex-col gap-4 lg:col-span-1">
+              <SleepFactorsCard
+                baby={baby}
+                nightDate={effectiveDate}
+                night={liveScore}
+                customOptions={settings.customSleepFactors}
+                onUpdateCustomOptions={customSleepFactors => setSettings({ customSleepFactors })}
+                onSaved={refetch}
+              />
+              <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
+            </div>
             <SectionCarouselTabs tabs={tonightTabs} activeId={tonightTab} onChange={setTonightTab} />
           </div>
         ) : (
@@ -416,6 +428,15 @@ export function Dashboard() {
               onOpenSettings={() => setSettingsOpen(true)}
             />
             <div className="col-span-full flex flex-col gap-4 lg:col-span-1">
+              <SleepFactorsCard
+                baby={baby}
+                nightDate={effectiveDate}
+                night={sleepScore}
+                customOptions={settings.customSleepFactors}
+                onUpdateCustomOptions={customSleepFactors => setSettings({ customSleepFactors })}
+                onSaved={refetch}
+                loading={loading}
+              />
               <EventsCard messages={messages} loading={loading} />
               <MilestonesCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
             </div>

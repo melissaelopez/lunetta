@@ -49,6 +49,15 @@ router.put('/:babyUid/settings', requireToken, async (req, res) => {
       }
     }
 
+    const customSleepFactors: string[] | undefined = Array.isArray(b.custom_sleep_factors)
+      ? Array.from(new Set<string>(
+          (b.custom_sleep_factors as unknown[])
+            .filter((v): v is string => typeof v === 'string')
+            .map(v => v.trim().slice(0, 80))
+            .filter(Boolean),
+        )).slice(0, 30)
+      : undefined;
+
     const settings: BabySettings = {
       baby_uid: babyUid,
       name: typeof b.name === 'string' ? b.name.trim().slice(0, 40) : undefined,
@@ -57,6 +66,7 @@ router.put('/:babyUid/settings', requireToken, async (req, res) => {
       wake_hour: num(b.wake_hour, 0, 23),
       premature_weeks: num(b.premature_weeks, 0, 16),
       normal_wake_minutes: b.normal_wake_minutes === null ? null : num(b.normal_wake_minutes, 5, 90),
+      ...(customSleepFactors !== undefined && { custom_sleep_factors: customSleepFactors }),
       milestones: { ...DEFAULT_PROFILE.milestones, ...milestones },
       sleepwear: SLEEPWEAR.includes(b.sleepwear) ? b.sleepwear : undefined,
       pacifier: typeof b.pacifier === 'boolean' ? b.pacifier : undefined,

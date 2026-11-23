@@ -7,7 +7,8 @@ import { z } from 'zod';
 import { hasProviderApiKey, resolveAiSettings } from '../src/config.js';
 import { generateClaudeStructured } from '../src/services/claude.js';
 import { generateOpenAIStructured } from '../src/services/openai-adapter.js';
-import { generateGeminiChat, generateGeminiStructured, sanitizeGeminiError, zodToGeminiSchema } from '../src/services/gemini-adapter.js';
+import { generateGeminiChat, generateGeminiStructured, resolveGeminiChatModel, sanitizeGeminiError, zodToGeminiSchema } from '../src/services/gemini-adapter.js';
+import { buildPrompt } from '../src/services/ai-insights.js';
 import { aiApiErrorResponse } from '../src/services/ai-api-error.js';
 import { handleRouteError } from '../src/middleware/errorHandler.js';
 
@@ -355,4 +356,105 @@ test('Gemini chat maps user and assistant turns cleanly with system context', as
     { role: 'model', parts: [{ text: 'It was 5h 30m.' }] },
     { role: 'user', parts: [{ text: 'When did it happen?' }] },
   ]);
+});
+
+test('Gemini chat model selector honors allowlisted Pro/Flash models and ignores unknown models', async () => {
+  assert.equal(resolveGeminiChatModel('gemini-pro-latest'), 'gemini-pro-latest');
+  assert.equal(resolveGeminiChatModel('gemini-flash-latest'), 'gemini-flash-latest');
+  assert.equal(resolveGeminiChatModel('not-a-real-model'), 'gemini-flash-latest');
+
+  let capturedModel = '';
+  const mockClient = {
+    getGenerativeModel(modelParams: any) {
+      capturedModel = modelParams.model;
+      return {
+        async generateContent() {
+          return {
+            response: {
+              candidates: [{ finishReason: 'STOP' }],
+              usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 5 },
+              text: () => 'Pro reply.',
+            },
+          };
+        },
+      };
+    },
+  } as unknown as GoogleGenerativeAI;
+
+  await generateGeminiChat(
+    {
+      label: 'insights-chat',
+      system: 'Context',
+      model: 'gemini-pro-latest',
+      apiKeyOverride: 'AIzaTestFakeUserKey1234567890',
+      messages: [{ role: 'user', content: 'Analyze patterns.' }],
+    },
+    mockClient,
+  );
+  assert.equal(capturedModel, 'gemini-pro-latest');
+});
+
+test('AI insights prompt includes current and recent nightly sleep factors across 14-day window', () => {
+  const sampleNight = (date: string, sleepFactors?: string[]) => ({
+    date,
+    sleepFactors,
+    night: {
+      night_start: 1757979000,
+      night_end: 1758017700,
+      total_duration_minutes: 540,
+      sleep_segments: [{ uid: 's1', baby_uid: 'b1', begin_ts: 1757979000, end_ts: 1758017700, duration: 32400, type: 'auto_sleep', time: 1757979000 }],
+      gap_count: 0,
+      gaps: [],
+      longest_stretch_minutes: 540,
+    },
+    score: {
+      total_score: 90,
+      duration_score: 35,
+      continuity_score: 35,
+      onset_score: 15,
+      timing_score: 15,
+      details: {
+        total_sleep_minutes: 540,
+        target_sleep_minutes: 600,
+        wake_count: 0,
+        longest_stretch_minutes: 540,
+        bedtime: new Date(1757979000 * 1000).toISOString(),
+        wake_time: new Date(1758017700 * 1000).toISOString(),
+        adjusted: false,
+        wakes: [],
+        check_ins: [],
+      },
+      expectations: {
+        adjusted_age_months: 2,
+        ideal_sleep_hours: 10,
+        expected_wakes: 3,
+        normal_wake_minutes: 45,
+        normal_wake_minutes_custom: true,
+        expected_stretch_hours: 3,
+        ideal_bedtime_range: [19, 22] as [number, number],
+        excess_wake_penalty: 0,
+        long_wake_penalty: 0,
+        self_settled_wakes: 0,
+        parent_visit_wakes: 0,
+        unknown_wakes: 0,
+      },
+    },
+  });
+
+  const prompt = buildPrompt(
+    sampleNight('2025-09-15', ['Arms out — Halo Easy Transition Sleep Sack', 'White noise']),
+    [sampleNight('2025-09-14', ['Arms out — Halo Swaddle Sleep Sack'])],
+    2,
+    0,
+    false,
+    [],
+    false,
+    240,
+    '',
+    '',
+  );
+
+  assert.match(prompt, /Sleep factors logged by parent: Arms out — Halo Easy Transition Sleep Sack, White noise/);
+  assert.match(prompt, /RECENT NIGHTS \(up to last 14 days/);
+  assert.match(prompt, /factors: \[Arms out — Halo Swaddle Sleep Sack\]/);
 });

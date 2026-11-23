@@ -55,6 +55,8 @@ export interface SleepAnnotation {
   notes?: string;
   /** Parent corrections to wake labels, keyed by the wake's start (unix seconds). */
   wake_overrides?: Record<string, WakeResponse>;
+  /** Parent-logged sleep factors for this night (e.g. swaddle/sleep sack type, dream feed, white noise). */
+  sleep_factors?: string[];
   updated_at: number;
 }
 

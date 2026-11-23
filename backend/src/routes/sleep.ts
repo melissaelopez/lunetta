@@ -349,7 +349,23 @@ router.put('/:babyUid/sleep/:nightId', requireToken, async (req, res) => {
     }
     const hasOverrides = Object.keys(overrides).length > 0;
 
-    if (start === undefined && end === undefined && !notes && !hasOverrides) {
+    let sleepFactors: string[] | undefined = existing?.sleep_factors;
+    if ('sleep_factors' in body) {
+      if (Array.isArray(body.sleep_factors)) {
+        const cleaned = Array.from(new Set<string>(
+          (body.sleep_factors as unknown[])
+            .filter((v): v is string => typeof v === 'string')
+            .map(v => v.trim().slice(0, 80))
+            .filter(Boolean),
+        )).slice(0, 20);
+        sleepFactors = cleaned.length > 0 ? cleaned : undefined;
+      } else {
+        sleepFactors = undefined;
+      }
+    }
+    const hasSleepFactors = !!(sleepFactors && sleepFactors.length > 0);
+
+    if (start === undefined && end === undefined && !notes && !hasOverrides && !hasSleepFactors) {
       await store.deleteAnnotation(babyUid, id);
       res.json({ success: true, annotation: null });
       return;
@@ -362,6 +378,7 @@ router.put('/:babyUid/sleep/:nightId', requireToken, async (req, res) => {
       ...(end !== undefined && { custom_end_time: end }),
       ...(notes && { notes }),
       ...(hasOverrides && { wake_overrides: overrides }),
+      ...(hasSleepFactors && { sleep_factors: sleepFactors }),
       updated_at: Date.now(),
     };
     await store.saveAnnotation(annotation);

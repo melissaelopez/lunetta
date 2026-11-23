@@ -66,10 +66,11 @@ const InsightsWithVideoSchema = BaseInsightsSchema.extend({
 
 // ---- Input types ------------------------------------------------------------
 
-interface NightData {
+export interface NightData {
   date: string;
   score: SleepScoreBreakdown;
   night: NightSummary;
+  sleepFactors?: string[];
 }
 
 export interface EventWithMedia {
@@ -105,7 +106,8 @@ Each night wake is labeled with how it ended, from the camera's parent-detection
 - SELF-SETTLED: no parent came to the crib. The baby resettled on their own. Treat this as a skill to praise, even when the wake was long. Never advise the parent to wait, pause, or delay before responding to a self-settled wake, and never imply they responded. If a self-settled wake was long, look for causes in the schedule (daytime naps, wake window before bed, bedtime, early-night overtiredness, developmental leaps) rather than in the parent's response.
 - PARENT VISIT / TAKEN OUT: a parent went in. Only for these may you comment on how the parent responded.
 - UNKNOWN: the camera has no visit data for this wake. Do not assume either way.
-A "check-in" is a parent visit while the baby was asleep (e.g. a peek before the parents' own bedtime); it is not a response to a wake. Mention one only if a wake started within a few minutes after it.`;
+A "check-in" is a parent visit while the baby was asleep (e.g. a peek before the parents' own bedtime); it is not a response to a wake. Mention one only if a wake started within a few minutes after it.
+When the parent has logged nightly "Sleep factors" (such as arms-in vs. arms-out swaddle, Halo Swaddle Sleep Sack, Halo Easy Transition Sleep Sack, dream feed, reflux/upright time, etc.) across this night or recent nights, call out meaningful comparisons or correlations between those factors and sleep duration, longest stretch, or wakes.`;
 
 const RESPONSE_LABEL: Record<WakeDetail['response'], string> = {
   self_settled: 'SELF-SETTLED (no parent visit)',
@@ -127,7 +129,7 @@ export function describeWakes(wakes: WakeDetail[], fmt: (t: number) => string): 
     .join('\n');
 }
 
-function buildPrompt(
+export function buildPrompt(
   currentNight: NightData,
   recentNights: NightData[],
   adjustedAgeMonths: number,
@@ -156,8 +158,13 @@ function buildPrompt(
     const settled = d.wake_count > 0 && x.self_settled_wakes !== undefined
       ? ` (${x.self_settled_wakes} self-settled, ${x.parent_visit_wakes} with a parent visit${x.unknown_wakes ? `, ${x.unknown_wakes} unknown` : ''})`
       : '';
-    return `  ${n.date}: Score ${n.score.total_score}, ${formatDuration(d.total_sleep_minutes)} sleep, ${d.wake_count} wakes${settled}, bedtime ${fmt(d.bedtime)}, longest stretch ${formatDuration(d.longest_stretch_minutes)}`;
+    const factors = n.sleepFactors?.length ? `, factors: [${n.sleepFactors.join('; ')}]` : '';
+    return `  ${n.date}: Score ${n.score.total_score}, ${formatDuration(d.total_sleep_minutes)} sleep, ${d.wake_count} wakes${settled}, bedtime ${fmt(d.bedtime)}, longest stretch ${formatDuration(d.longest_stretch_minutes)}${factors}`;
   }).join('\n');
+
+  const currentFactorsLine = currentNight.sleepFactors?.length
+    ? `\n- Sleep factors logged by parent: ${currentNight.sleepFactors.join(', ')}`
+    : '';
 
   const nightLabel = isInProgress ? 'TONIGHT (IN PROGRESS)' : `LAST NIGHT (${currentNight.date})`;
   const inProgressNote = isInProgress
@@ -176,7 +183,7 @@ ${nightLabel}:
   - Longest Stretch: ${cn.onset_score}/15 (${formatDuration(cd.longest_stretch_minutes)}; self-settled wakes don't break a stretch, and awake time during them is excluded)
   - Timing: ${cn.timing_score}/15 (bedtime ${fmt(cd.bedtime)})
 - Bedtime: ${fmt(cd.bedtime)}${!isInProgress ? `\n- Wake time: ${fmt(cd.wake_time)}` : ''}
-- ${currentNight.night.sleep_segments.length} sleep segments${isInProgress ? ' so far' : ''}
+- ${currentNight.night.sleep_segments.length} sleep segments${isInProgress ? ' so far' : ''}${currentFactorsLine}
 - Wake details:
 ${gapDescriptions || '  No wakes recorded'}
 - Parent check-ins while asleep:
@@ -184,7 +191,7 @@ ${checkIns || '  None'}
 
 ${dayBlock}
 
-RECENT NIGHTS (for comparison):
+RECENT NIGHTS (up to last 14 days, for comparison):
 ${recentSummary || '  No recent data available'}
 
 ${profileBlock}
@@ -301,8 +308,8 @@ const CHAT_SYSTEM_INSTRUCTIONS = `${SYSTEM_PROMPT}
 
 You are now in a follow-up chat with the parent about this specific night.
 - Answer concisely, warmly, and practically (short paragraphs or brief bullets; easy to read on a phone).
-- You already have the full corrected sleep data for this night (including any manual bedtime/wake adjustments, wakes corrected to "Baby asleep", wake response overrides, custom normal wake length, daytime naps/wake windows, baby profile, and the last 7 nights).
-- Ground every observation in the provided data; never invent times or events.
+- You already have the full corrected sleep data for this night (including any manual bedtime/wake adjustments, wakes corrected to "Baby asleep", wake response overrides, custom normal wake length, logged sleep factors, daytime naps/wake windows, baby profile, and up to the last 14 days of sleep history).
+- Ground every observation in the provided data; never invent times, factors, or events. If the parent asks about dates older than the last 14 days shown below, politely note that you only have access to the last 14 days of history.
 - If the parent asks a medical question (e.g. reflux, illness, breathing), share gentle general sleep context while noting that medical advice should come from their pediatrician.`;
 
 export async function chatAboutNight(params: {
@@ -317,6 +324,7 @@ export async function chatAboutNight(params: {
   annotationNotes?: string;
   existingInsights?: NightInsights | null;
   messages: GeminiChatMessage[];
+  model?: string;
   geminiApiKey?: string;
 }): Promise<string | null> {
   if (!isAiConfigured({ provider: 'gemini', geminiApiKey: params.geminiApiKey })) {
@@ -356,6 +364,7 @@ export async function chatAboutNight(params: {
       label: 'insights-chat',
       system,
       messages: params.messages,
+      model: params.model,
       apiKeyOverride: params.geminiApiKey,
     });
   } catch (err: any) {

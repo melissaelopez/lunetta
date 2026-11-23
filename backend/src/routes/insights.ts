@@ -10,7 +10,9 @@ import * as store from '../services/store.js';
 import { consumeAiBudget } from '../services/ai-budget.js';
 import { getBabyProfile, profilePromptBlock } from '../services/baby-context.js';
 import { dayPromptBlock, loadDays, napExpectations } from '../services/daytime.js';
-import { isGeminiConfigured } from '../services/gemini-adapter.js';
+import { isGeminiConfigured, resolveGeminiChatModel } from '../services/gemini-adapter.js';
+
+const INSIGHTS_HISTORY_DAYS = 14;
 
 const router = Router();
 
@@ -64,8 +66,8 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
     const userGeminiKey = req.header('x-gemini-api-key')?.trim() || undefined;
 
     // Check storage cache — skip for in-progress nights and forced regenerations.
-    // The key includes the annotation timestamp so a manual adjustment invalidates it.
-    const nightKey = `${start}:v7:${current.annotation?.updated_at ?? 0}:p${profile.updated_at}`;
+    // The key includes the annotation timestamp so manual adjustments & sleep factors invalidate it.
+    const nightKey = `${start}:v8:${current.annotation?.updated_at ?? 0}:p${profile.updated_at}`;
     if (!force && !isInProgress) {
       const cached = await store.getCachedInsight(babyUid, nightKey).catch(() => null);
       if (cached) {
@@ -79,15 +81,20 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
       return;
     }
 
-    // Last 7 nights before this one, for comparison, and the naps/wake windows leading into this night
+    // Last 14 nights before this one, for comparison, and the naps/wake windows leading into this night
     const napExp = napExpectations(adjAge);
     const [recent, dayBlock] = await Promise.all([
-      loadScoredNights({ ...rangeBase, days: 7, beforeDate: currentDate }),
+      loadScoredNights({ ...rangeBase, days: INSIGHTS_HISTORY_DAYS, beforeDate: currentDate }),
       loadDays(rangeBase, [currentDate], napExp)
         .then(d => dayPromptBlock(d.days[0], napExp, tzOffset))
         .catch(err => { console.log(`[insights] daytime context failed: ${err.message}`); return ''; }),
     ]);
-    const recentNights = recent.map(n => ({ date: n.date, score: n.score, night: n.night }));
+    const recentNights = recent.map(n => ({
+      date: n.date,
+      score: n.score,
+      night: n.night,
+      sleepFactors: n.annotation?.sleep_factors,
+    }));
 
     // Fetch events for this night and pick up to 6 with thumbnails spread across the night
     let eventContext: any[] = [];
@@ -121,7 +128,7 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
       await consumeAiBudget(babyUid, 'insights');
     }
     const insights = await generateNightInsights(
-      { date: currentDate, score: current.score, night: current.night },
+      { date: currentDate, score: current.score, night: current.night, sleepFactors: current.annotation?.sleep_factors },
       recentNights,
       adjAge,
       prematureWeeks,
@@ -164,6 +171,7 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
     const tzOffset = parseInt(String(body.tz_offset)) || 0;
     const rawMessages = Array.isArray(body.messages) ? body.messages : [];
     const existingInsights = (body.current_insights ?? null) as NightInsights | null;
+    const resolvedModel = resolveGeminiChatModel(typeof body.model === 'string' ? body.model : undefined);
 
     if (!start || !end || !birthdate) {
       res.status(400).json({ error: 'bad_request', message: 'start, end, and birthdate required' });
@@ -202,7 +210,7 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
     const napExp = napExpectations(adjAge);
 
     const [recent, dayBlock] = await Promise.all([
-      loadScoredNights({ ...rangeBase, days: 7, beforeDate: currentDate }),
+      loadScoredNights({ ...rangeBase, days: INSIGHTS_HISTORY_DAYS, beforeDate: currentDate }),
       loadDays(rangeBase, [currentDate], napExp)
         .then(d => dayPromptBlock(d.days[0], napExp, tzOffset))
         .catch(err => { console.log(`[insights-chat] daytime context failed: ${err.message}`); return ''; }),
@@ -213,8 +221,13 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
     }
 
     const reply = await chatAboutNight({
-      currentNight: { date: currentDate, score: current.score, night: current.night },
-      recentNights: recent.map(n => ({ date: n.date, score: n.score, night: n.night })),
+      currentNight: { date: currentDate, score: current.score, night: current.night, sleepFactors: current.annotation?.sleep_factors },
+      recentNights: recent.map(n => ({
+        date: n.date,
+        score: n.score,
+        night: n.night,
+        sleepFactors: n.annotation?.sleep_factors,
+      })),
       adjustedAgeMonths: adjAge,
       prematureWeeks,
       tzOffset,
@@ -224,6 +237,7 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
       annotationNotes: current.annotation?.notes,
       existingInsights,
       messages,
+      model: resolvedModel,
       geminiApiKey: userGeminiKey,
     });
 
@@ -232,7 +246,13 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
       return;
     }
 
-    res.json({ reply, provider: 'gemini', using_user_key: !!userGeminiKey });
+    res.json({
+      reply,
+      provider: 'gemini',
+      model: resolvedModel,
+      context_days: INSIGHTS_HISTORY_DAYS,
+      using_user_key: !!userGeminiKey,
+    });
   } catch (err: any) {
     handleRouteError(res, err, 'insights_chat_failed');
   }
