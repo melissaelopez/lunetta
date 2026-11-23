@@ -11,6 +11,7 @@ import type { Baby } from '../../types';
 
 interface Props {
   baby: Baby | null;
+  nightDate?: string;
   nightStart: number;
   nightEnd: number;
   prematureWeeks: number;
@@ -18,12 +19,13 @@ interface Props {
   wakeHour: number;
   hasSleepData: boolean;
   annotationUpdatedAt?: number;
+  onSelectDate?: (date: string) => void;
 }
 
 // Client-side cache to avoid re-fetching when navigating back
 const insightsCache = new Map<string, NightInsights>();
 
-export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, hasSleepData, annotationUpdatedAt = 0 }: Props) {
+export function NightInsightsCard({ baby, nightDate, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, hasSleepData, annotationUpdatedAt = 0, onSelectDate }: Props) {
   const [insights, setInsights] = useState<NightInsights | null>(null);
   const [needsApiKey, setNeedsApiKey] = useState(false);
   const [invalidKey, setInvalidKey] = useState(false);
@@ -269,12 +271,14 @@ export function NightInsightsCard({ baby, nightStart, nightEnd, prematureWeeks, 
           {/* Follow-up chat with Gemini */}
           <NightInsightsChat
             baby={baby}
+            nightDate={nightDate}
             nightStart={nightStart}
             nightEnd={nightEnd}
             prematureWeeks={prematureWeeks}
             bedtimeHour={bedtimeHour}
             wakeHour={wakeHour}
             currentInsights={insights}
+            onSelectDate={onSelectDate}
           />
         </div>
       )}

@@ -11,8 +11,17 @@ import { consumeAiBudget } from '../services/ai-budget.js';
 import { getBabyProfile, profilePromptBlock } from '../services/baby-context.js';
 import { dayPromptBlock, loadDays, napExpectations } from '../services/daytime.js';
 import { isGeminiConfigured, resolveGeminiChatModel } from '../services/gemini-adapter.js';
+import { applySleepFactorCarryover, resolveNightSleepFactors } from '../services/sleep-factors.js';
+import type { PersistedChatMessage } from '../services/storage.js';
 
 const INSIGHTS_HISTORY_DAYS = 14;
+const MAX_PERSISTED_CHAT_MESSAGES = 200;
+
+function resolveChatDate(rawDate: unknown, start: number, tzOffset: number): string | null {
+  if (typeof rawDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate)) return rawDate;
+  if (Number.isFinite(start) && start > 0) return localDateStr(start, tzOffset);
+  return null;
+}
 
 const router = Router();
 
@@ -65,9 +74,13 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
     // Optional per-request Gemini API key from client header. Never log, cache, or persist it.
     const userGeminiKey = req.header('x-gemini-api-key')?.trim() || undefined;
 
+    // Resolve current night's effective sleep factors (explicit or carried over from previous night)
+    const resolvedCurrentFactors = await resolveNightSleepFactors(babyUid, currentDate, current.annotation);
+    const factorsFingerprint = resolvedCurrentFactors.sleep_factors.join('|');
+
     // Check storage cache — skip for in-progress nights and forced regenerations.
-    // The key includes the annotation timestamp so manual adjustments & sleep factors invalidate it.
-    const nightKey = `${start}:v8:${current.annotation?.updated_at ?? 0}:p${profile.updated_at}`;
+    // The key includes the annotation timestamp + effective sleep factors so edits or carry-over changes invalidate it.
+    const nightKey = `${start}:v9:${current.annotation?.updated_at ?? 0}:p${profile.updated_at}:f${factorsFingerprint}`;
     if (!force && !isInProgress) {
       const cached = await store.getCachedInsight(babyUid, nightKey).catch(() => null);
       if (cached) {
@@ -89,11 +102,16 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
         .then(d => dayPromptBlock(d.days[0], napExp, tzOffset))
         .catch(err => { console.log(`[insights] daytime context failed: ${err.message}`); return ''; }),
     ]);
-    const recentNights = recent.map(n => ({
+    const oldestSeed = recent.length > 0 && !Array.isArray(recent[0].annotation?.sleep_factors)
+      ? (await resolveNightSleepFactors(babyUid, recent[0].date, recent[0].annotation)).sleep_factors
+      : [];
+    const recentEffectiveFactors = applySleepFactorCarryover(recent, oldestSeed);
+    const recentNights = recent.map((n, i) => ({
       date: n.date,
       score: n.score,
       night: n.night,
-      sleepFactors: n.annotation?.sleep_factors,
+      sleepFactors: recentEffectiveFactors[i],
+      notes: n.annotation?.notes,
     }));
 
     // Fetch events for this night and pick up to 6 with thumbnails spread across the night
@@ -128,7 +146,7 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
       await consumeAiBudget(babyUid, 'insights');
     }
     const insights = await generateNightInsights(
-      { date: currentDate, score: current.score, night: current.night, sleepFactors: current.annotation?.sleep_factors },
+      { date: currentDate, score: current.score, night: current.night, sleepFactors: resolvedCurrentFactors.sleep_factors, notes: current.annotation?.notes },
       recentNights,
       adjAge,
       prematureWeeks,
@@ -156,6 +174,59 @@ router.get('/:babyUid/sleep/insights', requireToken, async (req, res) => {
   }
 });
 
+// Load saved analysis chat history for a single night
+router.get('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
+  try {
+    const babyUid = String(req.params.babyUid);
+    const start = parseInt(String(req.query.start || '0'), 10);
+    const tzOffset = parseInt(String(req.query.tz_offset || '0'), 10) || 0;
+    const nightDate = resolveChatDate(req.query.date, start, tzOffset);
+    if (!nightDate) {
+      res.status(400).json({ error: 'bad_request', message: 'date (YYYY-MM-DD) or start required' });
+      return;
+    }
+    const thread = await store.getInsightsChat(babyUid, nightDate);
+    res.json({
+      night_date: nightDate,
+      messages: thread?.messages ?? [],
+      updated_at: thread?.updated_at ?? null,
+    });
+  } catch (err: any) {
+    handleRouteError(res, err, 'insights_chat_load_failed');
+  }
+});
+
+// List recent saved analysis chat threads for a baby
+router.get('/:babyUid/sleep/insights/chats', requireToken, async (req, res) => {
+  try {
+    const babyUid = String(req.params.babyUid);
+    const rawLimit = parseInt(String(req.query.limit || '30'), 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(100, Math.max(1, rawLimit)) : 30;
+    const chats = await store.listInsightsChats(babyUid, limit);
+    res.json({ chats });
+  } catch (err: any) {
+    handleRouteError(res, err, 'insights_chats_list_failed');
+  }
+});
+
+// Clear saved analysis chat history for a single night
+router.delete('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
+  try {
+    const babyUid = String(req.params.babyUid);
+    const start = parseInt(String(req.query.start || '0'), 10);
+    const tzOffset = parseInt(String(req.query.tz_offset || '0'), 10) || 0;
+    const nightDate = resolveChatDate(req.query.date, start, tzOffset);
+    if (!nightDate) {
+      res.status(400).json({ error: 'bad_request', message: 'date (YYYY-MM-DD) or start required' });
+      return;
+    }
+    await store.deleteInsightsChat(babyUid, nightDate);
+    res.json({ success: true, night_date: nightDate });
+  } catch (err: any) {
+    handleRouteError(res, err, 'insights_chat_delete_failed');
+  }
+});
+
 // Follow-up chat with Gemini grounded in this night's full (corrected) sleep context
 router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
   try {
@@ -178,10 +249,10 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
       return;
     }
 
-    const messages = rawMessages
+    const messages: Array<{ role: 'user' | 'assistant'; content: string }> = rawMessages
       .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim().length > 0)
       .slice(-20)
-      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content.trim().slice(0, 4000) }));
+      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: String(m.content).trim().slice(0, 4000) }));
 
     if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
       res.status(400).json({ error: 'bad_request', message: 'A user message is required' });
@@ -195,7 +266,7 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
       return;
     }
 
-    const currentDate = localDateStr(start, tzOffset);
+    const currentDate = resolveChatDate(body.night_date, start, tzOffset) ?? localDateStr(start, tzOffset);
     const rangeBase = { token, babyUid, birthdate, prematureWeeks, bedtimeHour, wakeHour, tzOffset };
 
     const current = await scoreWindow(rangeBase, { date: currentDate, start, end });
@@ -209,24 +280,32 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
     const adjAge = getAdjustedAgeMonths(birthdate, prematureWeeks, new Date(current.night.night_start * 1000));
     const napExp = napExpectations(adjAge);
 
-    const [recent, dayBlock] = await Promise.all([
+    const [recent, dayBlock, existingThread, resolvedCurrentFactors] = await Promise.all([
       loadScoredNights({ ...rangeBase, days: INSIGHTS_HISTORY_DAYS, beforeDate: currentDate }),
       loadDays(rangeBase, [currentDate], napExp)
         .then(d => dayPromptBlock(d.days[0], napExp, tzOffset))
         .catch(err => { console.log(`[insights-chat] daytime context failed: ${err.message}`); return ''; }),
+      store.getInsightsChat(babyUid, currentDate).catch(() => null),
+      resolveNightSleepFactors(babyUid, currentDate, current.annotation),
     ]);
+
+    const oldestSeed = recent.length > 0 && !Array.isArray(recent[0].annotation?.sleep_factors)
+      ? (await resolveNightSleepFactors(babyUid, recent[0].date, recent[0].annotation)).sleep_factors
+      : [];
+    const recentEffectiveFactors = applySleepFactorCarryover(recent, oldestSeed);
 
     if (!userGeminiKey) {
       await consumeAiBudget(babyUid, 'insights_chat');
     }
 
     const reply = await chatAboutNight({
-      currentNight: { date: currentDate, score: current.score, night: current.night, sleepFactors: current.annotation?.sleep_factors },
-      recentNights: recent.map(n => ({
+      currentNight: { date: currentDate, score: current.score, night: current.night, sleepFactors: resolvedCurrentFactors.sleep_factors, notes: current.annotation?.notes },
+      recentNights: recent.map((n, i) => ({
         date: n.date,
         score: n.score,
         night: n.night,
-        sleepFactors: n.annotation?.sleep_factors,
+        sleepFactors: recentEffectiveFactors[i],
+        notes: n.annotation?.notes,
       })),
       adjustedAgeMonths: adjAge,
       prematureWeeks,
@@ -246,12 +325,44 @@ router.post('/:babyUid/sleep/insights/chat', requireToken, async (req, res) => {
       return;
     }
 
+    const now = Date.now();
+    const latestUser = messages[messages.length - 1];
+    let savedMessages: PersistedChatMessage[];
+    if (existingThread && existingThread.messages.length > 0 && existingThread.messages.length >= messages.length - 1) {
+      savedMessages = [
+        ...existingThread.messages,
+        { role: 'user' as const, content: latestUser.content, created_at: now - 1 },
+        { role: 'assistant' as const, content: reply, created_at: now, model: resolvedModel },
+      ].slice(-MAX_PERSISTED_CHAT_MESSAGES);
+    } else {
+      savedMessages = [
+        ...messages.map((m, i): PersistedChatMessage => ({
+          role: m.role,
+          content: m.content,
+          created_at: now - (messages.length - i),
+        })),
+        { role: 'assistant' as const, content: reply, created_at: now, model: resolvedModel },
+      ].slice(-MAX_PERSISTED_CHAT_MESSAGES);
+    }
+
+    await store.saveInsightsChat({
+      baby_uid: babyUid,
+      night_date: currentDate,
+      messages: savedMessages,
+      updated_at: now,
+    }).catch(err => {
+      console.log(`[insights-chat] save failed: ${err.message}`);
+    });
+
     res.json({
       reply,
       provider: 'gemini',
       model: resolvedModel,
       context_days: INSIGHTS_HISTORY_DAYS,
       using_user_key: !!userGeminiKey,
+      night_date: currentDate,
+      messages: savedMessages,
+      updated_at: now,
     });
   } catch (err: any) {
     handleRouteError(res, err, 'insights_chat_failed');

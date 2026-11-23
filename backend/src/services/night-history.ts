@@ -129,6 +129,7 @@ export interface HistoryPoint {
   wake_count: number;
   self_settled_wakes: number;
   parent_visit_wakes: number;
+  unknown_wakes: number;
   longest_stretch_minutes: number;
   bedtime: string;
   wake_time: string;
@@ -143,6 +144,7 @@ export function toHistoryPoint(n: ScoredNight): HistoryPoint {
     wake_count: n.score.details.wake_count,
     self_settled_wakes: n.score.expectations.self_settled_wakes,
     parent_visit_wakes: n.score.expectations.parent_visit_wakes,
+    unknown_wakes: n.score.expectations.unknown_wakes,
     longest_stretch_minutes: n.score.details.longest_stretch_minutes,
     bedtime: n.score.details.bedtime,
     wake_time: n.score.details.wake_time,

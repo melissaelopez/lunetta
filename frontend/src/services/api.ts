@@ -290,6 +290,17 @@ export async function setWakeOverride(
   return data.annotation ?? null;
 }
 
+/** Fetch effective sleep factors (own or carried over from prior night) and note for a date. */
+export async function getSleepFactors(
+  babyUid: string,
+  date: string,
+): Promise<{ night_id: string; sleep_factors: string[]; inherited: boolean; inherited_from: string | null; notes: string }> {
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/factors?date=${encodeURIComponent(date)}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Could not load sleep factors');
+  return data;
+}
+
 /** Save the parent-selected sleep factors checklist for a night. */
 export async function setSleepFactors(
   babyUid: string,
@@ -302,6 +313,21 @@ export async function setSleepFactors(
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Could not save sleep factors');
+  return data.annotation ?? null;
+}
+
+/** Save a qualitative parent note for a night (pass empty string to clear). */
+export async function setNightNotes(
+  babyUid: string,
+  nightId: string,
+  notes: string,
+): Promise<SleepAnnotation | null> {
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/${encodeURIComponent(nightId)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ notes }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Could not save note');
   return data.annotation ?? null;
 }
 
@@ -334,6 +360,9 @@ export interface TrendPoint {
   score: number | null;
   total_sleep_minutes: number | null;
   wake_count?: number;
+  self_settled_wakes?: number | null;
+  parent_visit_wakes?: number | null;
+  unknown_wakes?: number | null;
   longest_stretch_minutes?: number | null;
   bedtime?: string;
   wake_time?: string;
@@ -358,6 +387,44 @@ export async function getSleepTrend(
   const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/trend?${params}`);
   const data = await res.json();
   return data.trend || [];
+}
+
+// All-time sleep highs
+export interface SleepRecordMetric {
+  value: number;
+  date: string;
+}
+
+export interface AllTimeSleepRecords {
+  highest_score: SleepRecordMetric | null;
+  longest_stretch_minutes: SleepRecordMetric | null;
+  most_sleep_minutes: SleepRecordMetric | null;
+  nights_analyzed: number;
+  earliest_date: string | null;
+  latest_date: string | null;
+  updated_at: number;
+}
+
+export async function getAllTimeSleepRecords(
+  babyUid: string,
+  birthdate: string,
+  prematureWeeks: number = 0,
+  bedtimeHour: number = 19,
+  wakeHour: number = 8,
+  force = false,
+): Promise<AllTimeSleepRecords> {
+  const params = new URLSearchParams({
+    birthdate,
+    premature_weeks: String(prematureWeeks),
+    bedtime_hour: String(bedtimeHour),
+    wake_hour: String(wakeHour),
+    tz_offset: String(new Date().getTimezoneOffset()),
+    ...(force ? { force: 'true' } : {}),
+  });
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/records?${params}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Could not load all-time highs');
+  return data.records;
 }
 
 // Night Comparison
@@ -609,6 +676,64 @@ export type GeminiChatModel = 'gemini-flash-latest' | 'gemini-pro-latest';
 export interface InsightsChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  created_at?: number;
+  model?: string;
+}
+
+export interface InsightsChatSummary {
+  night_date: string;
+  message_count: number;
+  preview: string;
+  updated_at: number;
+}
+
+export async function getInsightsChat(
+  babyUid: string,
+  nightDate?: string,
+  nightStart?: number,
+): Promise<{ night_date: string; messages: InsightsChatMessage[]; updated_at: number | null }> {
+  const params = new URLSearchParams({
+    tz_offset: String(new Date().getTimezoneOffset()),
+    ...(nightDate ? { date: nightDate } : {}),
+    ...(!nightDate && nightStart ? { start: String(nightStart) } : {}),
+  });
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/insights/chat?${params}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Could not load chat history');
+  return {
+    night_date: data.night_date,
+    messages: data.messages || [],
+    updated_at: data.updated_at ?? null,
+  };
+}
+
+export async function listInsightsChats(
+  babyUid: string,
+  limit = 30,
+): Promise<InsightsChatSummary[]> {
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/insights/chats?limit=${limit}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Could not load saved chats');
+  return data.chats || [];
+}
+
+export async function deleteInsightsChat(
+  babyUid: string,
+  nightDate?: string,
+  nightStart?: number,
+): Promise<void> {
+  const params = new URLSearchParams({
+    tz_offset: String(new Date().getTimezoneOffset()),
+    ...(nightDate ? { date: nightDate } : {}),
+    ...(!nightDate && nightStart ? { start: String(nightStart) } : {}),
+  });
+  const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/insights/chat?${params}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || 'Could not clear chat history');
+  }
 }
 
 export async function chatNightInsights(
@@ -622,7 +747,16 @@ export async function chatNightInsights(
   messages: InsightsChatMessage[],
   currentInsights?: NightInsights | null,
   model?: GeminiChatModel,
-): Promise<{ reply: string | null; needsApiKey: boolean; model?: string; contextDays?: number }> {
+  nightDate?: string,
+): Promise<{
+  reply: string | null;
+  needsApiKey: boolean;
+  model?: string;
+  contextDays?: number;
+  nightDate?: string;
+  messages?: InsightsChatMessage[];
+  updatedAt?: number;
+}> {
   const res = await authFetch(`${BASE}/babies/${babyUid}/sleep/insights/chat`, {
     method: 'POST',
     headers: geminiHeaders(),
@@ -637,6 +771,7 @@ export async function chatNightInsights(
       messages,
       current_insights: currentInsights ?? null,
       ...(model ? { model } : {}),
+      ...(nightDate ? { night_date: nightDate } : {}),
     }),
   });
   const data = await res.json();
@@ -648,6 +783,9 @@ export async function chatNightInsights(
     needsApiKey: !!data.needs_api_key,
     model: data.model,
     contextDays: data.context_days,
+    nightDate: data.night_date,
+    messages: data.messages,
+    updatedAt: data.updated_at,
   };
 }
 

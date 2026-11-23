@@ -4,7 +4,8 @@ import { config } from '../config.js';
 import type { SleepAnnotation } from '../types/app.js';
 import type { NightInsights } from './ai-insights.js';
 import type { NightSummary } from './sleep-scorer.js';
-import type { Storage, FeedbackEntry, BabySettings, CachedInsightValue } from './storage.js';
+import type { Storage, FeedbackEntry, BabySettings, CachedInsightValue, InsightsChatThread, CachedSleepRecords } from './storage.js';
+import { summarizeChatThread } from './storage.js';
 import type { DayStats } from './stats.js';
 
 // Initialize Firebase Admin with default credentials (works on Cloud Run automatically).
@@ -123,6 +124,38 @@ export const firestoreStore: Storage = {
   async cacheActivity(babyUid, start, end, activity) {
     await db.collection('night_activity').doc(`v1:${babyUid}:${start}:${end}`)
       .set({ baby_uid: babyUid, start, end, activity, cached_at: Date.now() });
+  },
+  async getInsightsChat(babyUid, nightDate) {
+    const doc = await db.collection('insights_chats').doc(babyUid).collection('nights').doc(nightDate).get();
+    return doc.exists ? (doc.data() as InsightsChatThread) : null;
+  },
+  async saveInsightsChat(thread) {
+    const clean = JSON.parse(JSON.stringify(thread));
+    await db.collection('insights_chats').doc(thread.baby_uid).collection('nights').doc(thread.night_date).set(clean);
+  },
+  async deleteInsightsChat(babyUid, nightDate) {
+    await db.collection('insights_chats').doc(babyUid).collection('nights').doc(nightDate).delete();
+  },
+  async listInsightsChats(babyUid, limit = 30) {
+    const snap = await db
+      .collection('insights_chats')
+      .doc(babyUid)
+      .collection('nights')
+      .orderBy('updated_at', 'desc')
+      .limit(limit)
+      .get();
+    return snap.docs
+      .map(doc => doc.data() as InsightsChatThread)
+      .filter(t => Array.isArray(t.messages) && t.messages.length > 0)
+      .map(summarizeChatThread);
+  },
+  async getSleepRecordsCache(babyUid) {
+    const doc = await db.collection('sleep_records').doc(babyUid).get();
+    return doc.exists ? (doc.data() as CachedSleepRecords) : null;
+  },
+  async saveSleepRecordsCache(records) {
+    const clean = JSON.parse(JSON.stringify(records));
+    await db.collection('sleep_records').doc(records.baby_uid).set(clean);
   },
   async reserveAiCall(day, babyUid, label, perBabyLimit, globalLimit) {
     const usage = db.collection('ai_usage');

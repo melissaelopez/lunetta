@@ -117,6 +117,9 @@ export interface ScoredNight extends SleepScoreBreakdown {
   segments: SleepSegment[];
   gaps: SleepGap[];
   annotation: SleepAnnotation | null;
+  /** Default sleep factors carried over from the most recent prior night when this night has none saved yet. */
+  inherited_sleep_factors?: string[];
+  inherited_sleep_factors_from?: string;
 }
 
 export interface CalendarEvent {

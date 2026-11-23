@@ -3,8 +3,8 @@ import Database from 'better-sqlite3';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import type { Storage, FeedbackEntry, CachedInsightValue } from './storage.js';
-import type { BabySettings } from './storage.js';
+import type { Storage, FeedbackEntry, CachedInsightValue, InsightsChatThread, CachedSleepRecords } from './storage.js';
+import { summarizeChatThread, type BabySettings } from './storage.js';
 import type { SleepAnnotation } from '../types/app.js';
 import type { NightSummary } from './sleep-scorer.js';
 import type { DayStats } from './stats.js';
@@ -70,6 +70,31 @@ export function createSqliteStore(path: string): Storage & { close(): void } {
     async cacheNights(babyUid, start, end, nights) { set('nights', `v1:${babyUid}:${start}:${end}`, nights); },
     async getCachedActivity(babyUid, start, end) { return get<WindowActivity>('activity', `v1:${babyUid}:${start}:${end}`)?.value ?? null; },
     async cacheActivity(babyUid, start, end, activity) { set('activity', `v1:${babyUid}:${start}:${end}`, activity); },
+    async getInsightsChat(babyUid, nightDate) {
+      return get<InsightsChatThread>('insights_chat', `${babyUid}:${nightDate}`)?.value ?? null;
+    },
+    async saveInsightsChat(thread) {
+      put.run('insights_chat', `${thread.baby_uid}:${thread.night_date}`, JSON.stringify(thread), thread.updated_at);
+    },
+    async deleteInsightsChat(babyUid, nightDate) {
+      del.run('insights_chat', `${babyUid}:${nightDate}`);
+    },
+    async listInsightsChats(babyUid, limit = 30) {
+      const prefix = `${babyUid}:`;
+      const rows = db.prepare(
+        'SELECT value FROM documents WHERE kind = ? AND substr(key, 1, ?) = ? ORDER BY created_at DESC LIMIT ?',
+      ).all('insights_chat', prefix.length, prefix, limit) as Array<{ value: string }>;
+      return rows
+        .map(row => JSON.parse(row.value) as InsightsChatThread)
+        .filter(t => t.messages.length > 0)
+        .map(summarizeChatThread);
+    },
+    async getSleepRecordsCache(babyUid) {
+      return get<CachedSleepRecords>('sleep_records', babyUid)?.value ?? null;
+    },
+    async saveSleepRecordsCache(records) {
+      set('sleep_records', records.baby_uid, records);
+    },
     async reserveAiCall(day, babyUid, label, perBabyLimit, globalLimit) { return reserve(day, babyUid, label, perBabyLimit, globalLimit); },
     async incrementStats(day, fields, babyUid) {
       db.transaction(() => {

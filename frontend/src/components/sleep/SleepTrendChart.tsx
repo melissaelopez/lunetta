@@ -39,7 +39,9 @@ const CHART_COLORS = {
     score: '#6366f1',       // indigo-500
     stretch: '#0d9488',     // teal-600
     hours: '#6366f1',
-    wakes: '#f59e0b',       // amber-500
+    parentVisit: '#f59e0b', // amber-500 (matches SleepTimeline parent visit)
+    selfSettled: '#14b8a6', // teal-500  (matches SleepTimeline self-settled)
+    unknownWake: '#94a3b8', // slate-400 (older nights without camera visit feed)
   },
   dark: {
     grid: '#334155',        // slate-700
@@ -50,7 +52,9 @@ const CHART_COLORS = {
     score: '#818cf8',       // indigo-400
     stretch: '#2dd4bf',     // teal-400
     hours: '#818cf8',
-    wakes: '#fbbf24',       // amber-400
+    parentVisit: '#fbbf24', // amber-400
+    selfSettled: '#2dd4bf', // teal-400
+    unknownWake: '#64748b', // slate-500
   },
 } as const;
 
@@ -91,13 +95,27 @@ export function SleepTrendChart({ baby, bedtimeHour, wakeHour, prematureWeeks }:
     );
   }
 
-  const chartData = trend.map(t => ({
-    date: t.date.slice(5), // "04-10" -> "04-10"
-    score: t.score,
-    longestStretchHours: t.longest_stretch_minutes != null ? t.longest_stretch_minutes / 60 : null,
-    sleepHours: t.total_sleep_minutes ? Math.round(t.total_sleep_minutes / 6) / 10 : null, // round to 0.1h
-    wakeUps: t.wake_count ?? null,
-  }));
+  const chartData = trend.map(t => {
+    const hasData = t.score !== null;
+    const parentVisitWakes = hasData ? (t.parent_visit_wakes ?? 0) : null;
+    const selfSettledWakes = hasData ? (t.self_settled_wakes ?? 0) : null;
+    const unknownWakes = hasData
+      ? (t.unknown_wakes ?? Math.max(0, (t.wake_count ?? 0) - (t.parent_visit_wakes ?? 0) - (t.self_settled_wakes ?? 0)))
+      : null;
+
+    return {
+      date: t.date.slice(5), // "04-10" -> "04-10"
+      score: t.score,
+      longestStretchHours: t.longest_stretch_minutes != null ? t.longest_stretch_minutes / 60 : null,
+      sleepHours: t.total_sleep_minutes ? Math.round(t.total_sleep_minutes / 6) / 10 : null, // round to 0.1h
+      wakeUps: t.wake_count ?? null,
+      parentVisitWakes,
+      selfSettledWakes,
+      unknownWakes,
+    };
+  });
+
+  const hasUnknownWakes = chartData.some(d => (d.unknownWakes ?? 0) > 0);
 
   const stretchValues = trend
     .map(t => t.longest_stretch_minutes)
@@ -194,22 +212,44 @@ export function SleepTrendChart({ baby, bedtimeHour, wakeHour, prematureWeeks }:
             </ResponsiveContainer>
           </div>
 
-          {/* Sleep hours + wake-ups */}
+          {/* Sleep hours + wake-ups (stacked by parent visit vs self-settled) */}
           <div>
             <p className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">Sleep Hours & Wake-ups</p>
-            <ResponsiveContainer width="100%" height={160}>
+            <ResponsiveContainer width="100%" height={180}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: colors.tick }} />
-                <YAxis yAxisId="hours" tick={{ fontSize: 11, fill: colors.tick }} />
-                <YAxis yAxisId="wakes" orientation="right" tick={{ fontSize: 11, fill: colors.tick }} />
+                <YAxis yAxisId="hours" tickFormatter={(v: number) => `${v}h`} tick={{ fontSize: 11, fill: colors.tick }} />
+                <YAxis yAxisId="wakes" orientation="right" allowDecimals={false} tick={{ fontSize: 11, fill: colors.tick }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: 8, fontSize: 12, color: colors.tooltipText }}
                   labelStyle={{ color: colors.tick }}
+                  formatter={(value, name) => {
+                    if (name === 'Hours') return [typeof value === 'number' ? `${value}h` : '—', 'Sleep hours'];
+                    return [typeof value === 'number' ? value : '—', String(name)];
+                  }}
                 />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Bar yAxisId="hours" dataKey="sleepHours" name="Hours" fill={colors.hours} radius={[4, 4, 0, 0]} />
-                <Bar yAxisId="wakes" dataKey="wakeUps" name="Wake-ups" fill={colors.wakes} radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="wakes" stackId="wakes" dataKey="parentVisitWakes" name="Parent visit" fill={colors.parentVisit} />
+                <Bar
+                  yAxisId="wakes"
+                  stackId="wakes"
+                  dataKey="selfSettledWakes"
+                  name="Self-settled"
+                  fill={colors.selfSettled}
+                  radius={hasUnknownWakes ? [0, 0, 0, 0] : [4, 4, 0, 0]}
+                />
+                {hasUnknownWakes && (
+                  <Bar
+                    yAxisId="wakes"
+                    stackId="wakes"
+                    dataKey="unknownWakes"
+                    name="No visit data"
+                    fill={colors.unknownWake}
+                    radius={[4, 4, 0, 0]}
+                  />
+                )}
               </BarChart>
             </ResponsiveContainer>
           </div>

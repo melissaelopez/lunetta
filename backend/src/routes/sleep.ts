@@ -9,6 +9,8 @@ import { handleRouteError } from '../middleware/errorHandler.js';
 import * as store from '../services/store.js';
 import { consumeAiBudget } from '../services/ai-budget.js';
 import { getBabyProfile, profilePromptBlock } from '../services/baby-context.js';
+import { getAllTimeSleepRecords, markSleepRecordDateStale } from '../services/sleep-records.js';
+import { resolveNightSleepFactors } from '../services/sleep-factors.js';
 import type { SleepAnnotation } from '../types/app.js';
 import type { ScheduleRecommendation } from '../services/schedule-optimizer.js';
 
@@ -86,12 +88,16 @@ router.get('/:babyUid/sleep/score', requireToken, async (req, res) => {
     const main = pickMainNight(nights);
     let altIndex = 0;
     const scores = await Promise.all(nights.map(async raw => {
-      const id = raw === main ? nightId(babyUid, date) : `${nightId(babyUid, date)}:alt${++altIndex}`;
+      const isMain = raw === main;
+      const id = isMain ? nightId(babyUid, date) : `${nightId(babyUid, date)}:alt${++altIndex}`;
       const annotation = await store.getAnnotation(babyUid, id).catch(() => null);
       const adjusted = applyAnnotation(raw, annotation);
+      const resolvedFactors = isMain
+        ? await resolveNightSleepFactors(babyUid, date, annotation)
+        : null;
       return {
         night_id: id,
-        is_main: raw === main,
+        is_main: isMain,
         ...scoreNight(raw, { birthdate, prematureWeeks, annotation, tzOffset, bedtimeHour, normalWakeMinutes, activity }),
         night_start: adjusted.night_start,
         night_end: adjusted.night_end,
@@ -101,11 +107,39 @@ router.get('/:babyUid/sleep/score', requireToken, async (req, res) => {
         segments: adjusted.sleep_segments,
         gaps: adjusted.gaps,
         annotation,
+        ...(resolvedFactors?.inherited && resolvedFactors.sleep_factors.length > 0 && {
+          inherited_sleep_factors: resolvedFactors.sleep_factors,
+          inherited_sleep_factors_from: resolvedFactors.inherited_from,
+        }),
       };
     }));
     res.json({ scores });
   } catch (err: any) {
     handleRouteError(res, err, 'score_failed');
+  }
+});
+
+// Effective sleep factors + note for a night (supports Tonight before first sleep segment)
+router.get('/:babyUid/sleep/factors', requireToken, async (req, res) => {
+  try {
+    const babyUid = String(req.params.babyUid);
+    const date = String(req.query.date || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      res.status(400).json({ error: 'bad_request', message: 'date query param required (YYYY-MM-DD)' });
+      return;
+    }
+    const id = nightId(babyUid, date);
+    const annotation = await store.getAnnotation(babyUid, id).catch(() => null);
+    const resolved = await resolveNightSleepFactors(babyUid, date, annotation);
+    res.json({
+      night_id: id,
+      sleep_factors: resolved.sleep_factors,
+      inherited: resolved.inherited,
+      inherited_from: resolved.inherited_from ?? null,
+      notes: annotation?.notes ?? '',
+    });
+  } catch (err: any) {
+    handleRouteError(res, err, 'factors_failed');
   }
 });
 
@@ -122,11 +156,35 @@ router.get('/:babyUid/sleep/trend', requireToken, async (req, res) => {
     // Keep a row for every requested date so the chart shows gaps
     const { pastNightDates } = await import('../services/night-windows.js');
     const trend = pastNightDates(p.days, p.tzOffset).map(date =>
-      byDate.get(date) ?? { date, score: null, total_sleep_minutes: null, longest_stretch_minutes: null },
+      byDate.get(date) ?? {
+        date,
+        score: null,
+        total_sleep_minutes: null,
+        longest_stretch_minutes: null,
+        self_settled_wakes: null,
+        parent_visit_wakes: null,
+        unknown_wakes: null,
+      },
     );
     res.json({ trend });
   } catch (err: any) {
     handleRouteError(res, err, 'trend_failed');
+  }
+});
+
+// All-time highest sleep score, longest stretch, and sleep duration
+router.get('/:babyUid/sleep/records', requireToken, async (req, res) => {
+  try {
+    const p = rangeParams(req, 0);
+    const force = req.query.force === 'true';
+    if (!p.birthdate) {
+      res.status(400).json({ error: 'bad_request', message: 'birthdate query param required' });
+      return;
+    }
+    const records = await getAllTimeSleepRecords(p, { force });
+    res.json({ records });
+  } catch (err: any) {
+    handleRouteError(res, err, 'records_failed');
   }
 });
 
@@ -334,7 +392,9 @@ router.put('/:babyUid/sleep/:nightId', requireToken, async (req, res) => {
       res.status(400).json({ error: 'bad_request', message: 'custom_end_time must be after custom_start_time' });
       return;
     }
-    const notes = 'notes' in body ? (body.notes ? String(body.notes) : undefined) : existing?.notes;
+    const notes = 'notes' in body
+      ? (typeof body.notes === 'string' && body.notes.trim() ? body.notes.trim().slice(0, 1000) : undefined)
+      : existing?.notes;
 
     const overrides: Record<string, WakeResponse> = { ...(existing?.wake_overrides ?? {}) };
     if (body.wake_override) {
@@ -352,21 +412,24 @@ router.put('/:babyUid/sleep/:nightId', requireToken, async (req, res) => {
     let sleepFactors: string[] | undefined = existing?.sleep_factors;
     if ('sleep_factors' in body) {
       if (Array.isArray(body.sleep_factors)) {
-        const cleaned = Array.from(new Set<string>(
+        sleepFactors = Array.from(new Set<string>(
           (body.sleep_factors as unknown[])
             .filter((v): v is string => typeof v === 'string')
             .map(v => v.trim().slice(0, 80))
             .filter(Boolean),
         )).slice(0, 20);
-        sleepFactors = cleaned.length > 0 ? cleaned : undefined;
       } else {
         sleepFactors = undefined;
       }
     }
-    const hasSleepFactors = !!(sleepFactors && sleepFactors.length > 0);
+    // Keep explicit empty arrays ([]) so clearing all chips on a night doesn't re-inherit the prior night's chips
+    const hasSleepFactors = sleepFactors !== undefined;
+
+    const dateMatch = id.match(/(\d{4}-\d{2}-\d{2})$/);
 
     if (start === undefined && end === undefined && !notes && !hasOverrides && !hasSleepFactors) {
       await store.deleteAnnotation(babyUid, id);
+      if (dateMatch) await markSleepRecordDateStale(babyUid, dateMatch[1]);
       res.json({ success: true, annotation: null });
       return;
     }
@@ -382,6 +445,7 @@ router.put('/:babyUid/sleep/:nightId', requireToken, async (req, res) => {
       updated_at: Date.now(),
     };
     await store.saveAnnotation(annotation);
+    if (dateMatch) await markSleepRecordDateStale(babyUid, dateMatch[1]);
     res.json({ success: true, annotation });
   } catch (err: any) {
     handleRouteError(res, err, 'update_failed');

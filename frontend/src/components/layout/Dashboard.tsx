@@ -11,6 +11,7 @@ import { ErrorState } from '../common/ErrorState';
 import { SectionCarouselTabs, type CarouselTab } from '../common/SectionCarouselTabs';
 import { errorMessage } from '../../utils/errors';
 import { SleepTrendChart } from '../sleep/SleepTrendChart';
+import { AllTimeRecordsCard } from '../sleep/AllTimeRecordsCard';
 import { NightInsightsCard } from '../sleep/NightInsightsCard';
 import { NightInProgressCard } from '../sleep/NightInProgressCard';
 import { VideoEventsCard } from '../sleep/VideoEventsCard';
@@ -194,6 +195,14 @@ export function Dashboard() {
       icon: <TrendingUp size={14} />,
       content: (
         <>
+          <AllTimeRecordsCard
+            baby={baby}
+            bedtimeHour={settings.bedtimeHour}
+            wakeHour={settings.wakeHour}
+            prematureWeeks={settings.prematureWeeks}
+            refreshKey={refreshKey}
+            onSelectDate={setDate}
+          />
           <SleepTrendChart baby={baby} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} prematureWeeks={settings.prematureWeeks} />
           <ScheduleOptimizerCard
             baby={baby}
@@ -242,6 +251,7 @@ export function Dashboard() {
           <DayActivityCard baby={baby} prematureWeeks={settings.prematureWeeks} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} />
           <NightInsightsCard
             baby={baby}
+            nightDate={effectiveDate}
             nightStart={nw.start}
             nightEnd={nw.end}
             prematureWeeks={settings.prematureWeeks}
@@ -249,6 +259,7 @@ export function Dashboard() {
             wakeHour={settings.wakeHour}
             hasSleepData={!!sleepScore}
             annotationUpdatedAt={sleepScore?.annotation?.updated_at}
+            onSelectDate={setDate}
           />
           <NightComparisonCard
             baby={baby}
@@ -266,6 +277,14 @@ export function Dashboard() {
       icon: <TrendingUp size={14} />,
       content: (
         <>
+          <AllTimeRecordsCard
+            baby={baby}
+            bedtimeHour={settings.bedtimeHour}
+            wakeHour={settings.wakeHour}
+            prematureWeeks={settings.prematureWeeks}
+            refreshKey={refreshKey}
+            onSelectDate={setDate}
+          />
           <SleepTrendChart baby={baby} bedtimeHour={settings.bedtimeHour} wakeHour={settings.wakeHour} prematureWeeks={settings.prematureWeeks} />
           <ScheduleOptimizerCard
             baby={baby}
@@ -389,6 +408,7 @@ export function Dashboard() {
             <div className="col-span-full lg:col-span-2">
               <NightInProgressCard
                 baby={baby}
+                nightDate={effectiveDate}
                 nightStart={nw.start}
                 nightEnd={nw.end}
                 prematureWeeks={settings.prematureWeeks}
@@ -397,6 +417,7 @@ export function Dashboard() {
                 normalWakeMinutes={settings.normalWakeMinutes}
                 refreshKey={refreshKey}
                 onScoreLoaded={setLiveScore}
+                onSelectDate={setDate}
               />
             </div>
             <div className="col-span-full flex flex-col gap-4 lg:col-span-1">

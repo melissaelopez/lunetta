@@ -394,10 +394,11 @@ test('Gemini chat model selector honors allowlisted Pro/Flash models and ignores
   assert.equal(capturedModel, 'gemini-pro-latest');
 });
 
-test('AI insights prompt includes current and recent nightly sleep factors across 14-day window', () => {
-  const sampleNight = (date: string, sleepFactors?: string[]) => ({
+test('AI insights prompt includes current and recent nightly sleep factors and notes across 14-day window', () => {
+  const sampleNight = (date: string, sleepFactors?: string[], notes?: string) => ({
     date,
     sleepFactors,
+    notes,
     night: {
       night_start: 1757979000,
       night_end: 1758017700,
@@ -442,8 +443,8 @@ test('AI insights prompt includes current and recent nightly sleep factors acros
   });
 
   const prompt = buildPrompt(
-    sampleNight('2025-09-15', ['Arms out — Halo Easy Transition Sleep Sack', 'White noise']),
-    [sampleNight('2025-09-14', ['Arms out — Halo Swaddle Sleep Sack'])],
+    sampleNight('2025-09-15', ['Arms out — Halo Easy Transition Sleep Sack', 'White noise'], "Attempted a dream feed but it didn't go very smoothly"),
+    [sampleNight('2025-09-14', ['Arms out — Halo Swaddle Sleep Sack'], 'Fell asleep calmly in 5 minutes')],
     2,
     0,
     false,
@@ -455,6 +456,7 @@ test('AI insights prompt includes current and recent nightly sleep factors acros
   );
 
   assert.match(prompt, /Sleep factors logged by parent: Arms out — Halo Easy Transition Sleep Sack, White noise/);
+  assert.match(prompt, /Parent note for this night: Attempted a dream feed but it didn't go very smoothly/);
   assert.match(prompt, /RECENT NIGHTS \(up to last 14 days/);
-  assert.match(prompt, /factors: \[Arms out — Halo Swaddle Sleep Sack\]/);
+  assert.match(prompt, /factors: \[Arms out — Halo Swaddle Sleep Sack\], note: "Fell asleep calmly in 5 minutes"/);
 });

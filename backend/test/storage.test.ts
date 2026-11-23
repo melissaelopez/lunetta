@@ -73,3 +73,70 @@ test('insight cache expires after 24 hours', async () => {
     assert.equal(await f.storage.getCachedInsight('baby', 'night'), null);
   } finally { Date.now = originalNow; f.cleanup(); }
 });
+
+test('insights chat threads and sleep records cache survive reopen and stay scoped per baby', async () => {
+  const f = fixture();
+  try {
+    await f.storage.saveInsightsChat({
+      baby_uid: 'baby_1',
+      night_date: '2026-11-20',
+      messages: [
+        { role: 'user', content: 'Why did the score drop?', created_at: 100 },
+        { role: 'assistant', content: 'There were two parent visits.', created_at: 101, model: 'gemini-flash-latest' },
+      ],
+      updated_at: 101,
+    });
+    await f.storage.saveInsightsChat({
+      baby_uid: 'baby_1',
+      night_date: '2026-11-22',
+      messages: [
+        { role: 'user', content: 'How did Halo arms-out compare?', created_at: 200 },
+        { role: 'assistant', content: 'Longest stretch improved by 45m.', created_at: 201, model: 'gemini-pro-latest' },
+      ],
+      updated_at: 201,
+    });
+    await f.storage.saveInsightsChat({
+      baby_uid: 'babyX1',
+      night_date: '2026-11-22',
+      messages: [{ role: 'user', content: 'Other baby thread', created_at: 300 }],
+      updated_at: 300,
+    });
+
+    const recordsSnapshot = {
+      baby_uid: 'baby_1',
+      settings_key: '2026-06-01|0|19|8|300|default',
+      nights: {
+        '2026-11-20': { date: '2026-11-20', score: 88, longest_stretch_minutes: 310, total_sleep_minutes: 620 },
+      },
+      empty_dates: ['2026-11-19'],
+      stale_dates: [],
+      scanned_back_to: '2026-11-19',
+      latest_scanned_date: '2026-11-20',
+      history_complete: true,
+      updated_at: 400,
+    };
+    await f.storage.saveSleepRecordsCache(recordsSnapshot);
+    f.storage.close();
+
+    const reopened = createSqliteStore(f.path);
+    try {
+      const thread = await reopened.getInsightsChat('baby_1', '2026-11-22');
+      assert.equal(thread?.messages.length, 2);
+      assert.equal(thread?.messages[1].model, 'gemini-pro-latest');
+
+      const list = await reopened.listInsightsChats('baby_1', 10);
+      assert.equal(list.length, 2);
+      // Newest updated_at first, and babyX1 must not match baby_1 wildcard
+      assert.equal(list[0].night_date, '2026-11-22');
+      assert.equal(list[0].preview, 'How did Halo arms-out compare?');
+      assert.equal(list[1].night_date, '2026-11-20');
+
+      await reopened.deleteInsightsChat('baby_1', '2026-11-20');
+      assert.equal(await reopened.getInsightsChat('baby_1', '2026-11-20'), null);
+      assert.equal((await reopened.listInsightsChats('baby_1', 10)).length, 1);
+
+      assert.deepEqual(await reopened.getSleepRecordsCache('baby_1'), recordsSnapshot);
+      assert.equal(await reopened.getSleepRecordsCache('babyX1'), null);
+    } finally { reopened.close(); }
+  } finally { rmSync(f.dir, { recursive: true, force: true }); }
+});

@@ -71,6 +71,7 @@ export interface NightData {
   score: SleepScoreBreakdown;
   night: NightSummary;
   sleepFactors?: string[];
+  notes?: string;
 }
 
 export interface EventWithMedia {
@@ -107,7 +108,7 @@ Each night wake is labeled with how it ended, from the camera's parent-detection
 - PARENT VISIT / TAKEN OUT: a parent went in. Only for these may you comment on how the parent responded.
 - UNKNOWN: the camera has no visit data for this wake. Do not assume either way.
 A "check-in" is a parent visit while the baby was asleep (e.g. a peek before the parents' own bedtime); it is not a response to a wake. Mention one only if a wake started within a few minutes after it.
-When the parent has logged nightly "Sleep factors" (such as arms-in vs. arms-out swaddle, Halo Swaddle Sleep Sack, Halo Easy Transition Sleep Sack, dream feed, reflux/upright time, etc.) across this night or recent nights, call out meaningful comparisons or correlations between those factors and sleep duration, longest stretch, or wakes.`;
+When the parent has logged nightly "Sleep factors" (such as arms-in vs. arms-out swaddle, Halo Swaddle Sleep Sack, Halo Easy Transition Sleep Sack, dream feed, reflux/upright time, etc.) or qualitative night notes (such as how a dream feed or bedtime went) across this night or recent nights, factor them directly into your explanation and call out meaningful comparisons or correlations with sleep duration, longest stretch, or wakes.`;
 
 const RESPONSE_LABEL: Record<WakeDetail['response'], string> = {
   self_settled: 'SELF-SETTLED (no parent visit)',
@@ -159,11 +160,17 @@ export function buildPrompt(
       ? ` (${x.self_settled_wakes} self-settled, ${x.parent_visit_wakes} with a parent visit${x.unknown_wakes ? `, ${x.unknown_wakes} unknown` : ''})`
       : '';
     const factors = n.sleepFactors?.length ? `, factors: [${n.sleepFactors.join('; ')}]` : '';
-    return `  ${n.date}: Score ${n.score.total_score}, ${formatDuration(d.total_sleep_minutes)} sleep, ${d.wake_count} wakes${settled}, bedtime ${fmt(d.bedtime)}, longest stretch ${formatDuration(d.longest_stretch_minutes)}${factors}`;
+    const noteText = n.notes ? n.notes.replace(/\s+/g, ' ').trim().slice(0, 240) : '';
+    const noteSuffix = noteText ? `, note: "${noteText}"` : '';
+    return `  ${n.date}: Score ${n.score.total_score}, ${formatDuration(d.total_sleep_minutes)} sleep, ${d.wake_count} wakes${settled}, bedtime ${fmt(d.bedtime)}, longest stretch ${formatDuration(d.longest_stretch_minutes)}${factors}${noteSuffix}`;
   }).join('\n');
 
   const currentFactorsLine = currentNight.sleepFactors?.length
     ? `\n- Sleep factors logged by parent: ${currentNight.sleepFactors.join(', ')}`
+    : '';
+  const currentNoteText = currentNight.notes?.trim();
+  const currentNotesLine = currentNoteText
+    ? `\n- Parent note for this night: ${currentNoteText}`
     : '';
 
   const nightLabel = isInProgress ? 'TONIGHT (IN PROGRESS)' : `LAST NIGHT (${currentNight.date})`;
@@ -183,7 +190,7 @@ ${nightLabel}:
   - Longest Stretch: ${cn.onset_score}/15 (${formatDuration(cd.longest_stretch_minutes)}; self-settled wakes don't break a stretch, and awake time during them is excluded)
   - Timing: ${cn.timing_score}/15 (bedtime ${fmt(cd.bedtime)})
 - Bedtime: ${fmt(cd.bedtime)}${!isInProgress ? `\n- Wake time: ${fmt(cd.wake_time)}` : ''}
-- ${currentNight.night.sleep_segments.length} sleep segments${isInProgress ? ' so far' : ''}${currentFactorsLine}
+- ${currentNight.night.sleep_segments.length} sleep segments${isInProgress ? ' so far' : ''}${currentFactorsLine}${currentNotesLine}
 - Wake details:
 ${gapDescriptions || '  No wakes recorded'}
 - Parent check-ins while asleep:

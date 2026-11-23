@@ -15,6 +15,7 @@ import type { Baby, ScoredNight } from '../../types';
 
 interface Props {
   baby: Baby | null;
+  nightDate?: string;
   nightStart: number;
   nightEnd: number;
   prematureWeeks: number;
@@ -23,6 +24,7 @@ interface Props {
   normalWakeMinutes?: number | null;
   refreshKey?: number;
   onScoreLoaded?: (score: ScoredNight | null) => void;
+  onSelectDate?: (date: string) => void;
 }
 
 interface LiveNightData {
@@ -33,7 +35,7 @@ interface LiveNightData {
   lastEventTime: number | null;
 }
 
-export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, normalWakeMinutes, refreshKey = 0, onScoreLoaded }: Props) {
+export function NightInProgressCard({ baby, nightDate, nightStart, nightEnd, prematureWeeks, bedtimeHour, wakeHour, normalWakeMinutes, refreshKey = 0, onScoreLoaded, onSelectDate }: Props) {
   const [data, setData] = useState<LiveNightData | null>(null);
   const [insights, setInsights] = useState<NightInsights | null>(null);
   const [insightsNeedsKey, setInsightsNeedsKey] = useState(false);
@@ -326,6 +328,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
 
                 <NightInsightsChat
                   baby={baby}
+                  nightDate={nightDate}
                   nightStart={nightStart}
                   nightEnd={nightEnd}
                   prematureWeeks={prematureWeeks}
@@ -333,6 +336,7 @@ export function NightInProgressCard({ baby, nightStart, nightEnd, prematureWeeks
                   wakeHour={wakeHour}
                   currentInsights={insights}
                   compact
+                  onSelectDate={onSelectDate}
                 />
               </div>
             )}
