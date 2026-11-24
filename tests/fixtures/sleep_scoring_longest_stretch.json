@@ -8,7 +8,7 @@
   },
   "scenarios": {
     "brief_self_settled_wake": {
-      "description": "4-minute self-settled wake bridges adjacent sleep segments while excluding the 4 minutes awake",
+      "description": "4-minute self-settled wake bridges adjacent sleep segments and includes the 4 minutes in the wall-clock unattended stretch",
       "calendar": [
         {
           "uid": "seg-brief-1",
@@ -40,13 +40,13 @@
       },
       "expected": {
         "total_sleep_minutes": 380,
-        "longest_stretch_minutes": 380,
+        "longest_stretch_minutes": 384,
         "wake_count": 1,
         "self_settled_wakes": 1
       }
     },
     "long_self_settled_wake_over_5_min": {
-      "description": "12-minute self-settled wake (>5m) bridges segments and improves Stretch score; 20-minute parent visit breaks the stretch",
+      "description": "12-minute self-settled wake (>5m) bridges segments (wall-clock 442m) and improves Stretch score; 20-minute parent visit breaks the stretch",
       "calendar": [
         {
           "uid": "seg-long-1",
@@ -90,7 +90,7 @@
       },
       "expected": {
         "total_sleep_minutes": 610,
-        "longest_stretch_minutes": 430,
+        "longest_stretch_minutes": 442,
         "onset_score": 15,
         "wake_count": 2,
         "self_settled_wakes": 1,
@@ -98,7 +98,7 @@
       }
     },
     "all_self_settled_night": {
-      "description": "Multiple self-settled wakes all night (15m and 20m) never cause longest stretch to exceed total sleep",
+      "description": "Multiple self-settled wakes all night (15m and 20m) are included in wall-clock unattended stretch (665m), surpassing total sleep (630m)",
       "calendar": [
         {
           "uid": "seg-allss-1",
@@ -141,14 +141,14 @@
       },
       "expected": {
         "total_sleep_minutes": 630,
-        "longest_stretch_minutes": 630,
+        "longest_stretch_minutes": 665,
         "wake_count": 2,
         "self_settled_wakes": 2,
         "parent_visit_wakes": 0
       }
     },
     "mixed_self_settled_and_taken_out": {
-      "description": "REMOVED wake breaks the stretch; longest stretch picks the longer combined asleep side (340m vs 250m)",
+      "description": "REMOVED wake breaks the stretch; longest stretch picks the longer unattended wall-clock side (348m vs 260m)",
       "calendar": [
         {
           "uid": "seg-mix-1",
@@ -202,7 +202,7 @@
       },
       "expected": {
         "total_sleep_minutes": 590,
-        "longest_stretch_minutes": 340,
+        "longest_stretch_minutes": 348,
         "wake_count": 3,
         "self_settled_wakes": 2,
         "parent_visit_wakes": 1
@@ -292,10 +292,10 @@
         "updated_at": 1758020000000
       },
       "expected_without_override": {
-        "longest_stretch_minutes": 350
+        "longest_stretch_minutes": 360
       },
       "expected_with_override": {
-        "longest_stretch_minutes": 380
+        "longest_stretch_minutes": 395
       }
     },
     "overlapping_and_annotated_segments": {
@@ -346,17 +346,17 @@
       },
       "expected_raw": {
         "total_sleep_minutes": 380,
-        "longest_stretch_minutes": 380,
+        "longest_stretch_minutes": 390,
         "wake_count": 1
       },
       "expected_annotated": {
         "total_sleep_minutes": 380,
-        "longest_stretch_minutes": 380,
+        "longest_stretch_minutes": 390,
         "wake_count": 1
       }
     },
     "false_wake_corrected_to_asleep": {
-      "description": "Parent corrects a 20m Nanit false wake to 'asleep': counted as sleep (adds 20m), removed from wake_count, and merged into longest stretch while a 10m self-settled wake still excludes its 10m awake time",
+      "description": "Parent corrects a 20m Nanit false wake to 'asleep': counted as sleep (adds 20m), removed from wake_count, and merged into wall-clock longest stretch alongside a 10m self-settled wake (590m wall-clock vs 580m total sleep)",
       "calendar": [
         {
           "uid": "seg-fw-1",
@@ -406,12 +406,12 @@
       },
       "expected_without_override": {
         "total_sleep_minutes": 560,
-        "longest_stretch_minutes": 380,
+        "longest_stretch_minutes": 390,
         "wake_count": 2
       },
       "expected_with_override": {
         "total_sleep_minutes": 580,
-        "longest_stretch_minutes": 580,
+        "longest_stretch_minutes": 590,
         "wake_count": 1,
         "self_settled_wakes": 1,
         "parent_visit_wakes": 0

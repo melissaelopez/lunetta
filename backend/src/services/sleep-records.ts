@@ -188,7 +188,7 @@ export async function getAllTimeSleepRecords(
     return computeAllTimeRecords([], Date.now());
   }
 
-  const settingsKey = `${birth ?? p.birthdate}|${p.prematureWeeks}|${p.bedtimeHour}|${p.wakeHour}|${p.tzOffset}|${normalWakeMinutes ?? 'default'}`;
+  const settingsKey = `v2|${birth ?? p.birthdate}|${p.prematureWeeks}|${p.bedtimeHour}|${p.wakeHour}|${p.tzOffset}|${normalWakeMinutes ?? 'default'}`;
   const existing = opts.force ? null : await store.getSleepRecordsCache(p.babyUid).catch(() => null);
   const cacheValid = !!(existing && existing.settings_key === settingsKey);
 

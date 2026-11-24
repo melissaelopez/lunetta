@@ -125,7 +125,7 @@ export function SleepScoreCard({ score, loading, babyName, wakeHour, onOpenSetti
       label: 'Stretch',
       value: score.onset_score, max: 15,
       tier: stretchTier,
-      note: `Longest ${formatDuration(d.longest_stretch_minutes)} vs ${x.expected_stretch_hours}h expected (excludes self-settled wakes)`,
+      note: `Longest ${formatDuration(d.longest_stretch_minutes)} unattended vs ${x.expected_stretch_hours}h expected (includes self-settled wakes)`,
     },
     {
       label: 'Timing',

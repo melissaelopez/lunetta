@@ -46,7 +46,7 @@ function baseScoreOpts(activity: WindowActivity, annotation?: SleepAnnotation | 
   };
 }
 
-test('brief self-settled wake bridges segments and excludes awake time from stretch', () => {
+test('brief self-settled wake bridges segments and includes wall-clock awake time in stretch', () => {
   const s = fixture.scenarios.brief_self_settled_wake;
   const [night] = buildNightSummaries(s.calendar);
   const wakes = classifyWakes(night.gaps, s.activity);
@@ -55,11 +55,12 @@ test('brief self-settled wake bridges segments and excludes awake time from stre
   assert.equal(longestStretchMinutes(night, wakes), s.expected!.longest_stretch_minutes);
   assert.equal(scored.details.total_sleep_minutes, s.expected!.total_sleep_minutes);
   assert.equal(scored.details.longest_stretch_minutes, s.expected!.longest_stretch_minutes);
+  assert.ok(scored.details.longest_stretch_minutes > scored.details.total_sleep_minutes);
   assert.equal(scored.details.wake_count, s.expected!.wake_count);
   assert.equal(scored.expectations.self_settled_wakes, s.expected!.self_settled_wakes);
 });
 
-test('self-settled wakes longer than 5 minutes do not break longest stretch and update Stretch score', () => {
+test('self-settled wakes longer than 5 minutes do not break longest stretch and include wall-clock gap time', () => {
   const s = fixture.scenarios.long_self_settled_wake_over_5_min;
   const [night] = buildNightSummaries(s.calendar);
   const scored = scoreNight(night, baseScoreOpts(s.activity));
@@ -75,17 +76,20 @@ test('self-settled wakes longer than 5 minutes do not break longest stretch and 
   assert.equal(scored.details.wake_count, s.expected!.wake_count);
   assert.equal(scored.expectations.self_settled_wakes, s.expected!.self_settled_wakes);
   assert.equal(scored.expectations.parent_visit_wakes, s.expected!.parent_visit_wakes);
-  assert.ok(scored.details.longest_stretch_minutes <= scored.details.total_sleep_minutes);
 });
 
-test('all-self-settled night excludes wake durations so longest stretch never exceeds total sleep', () => {
+test('all-self-settled night includes self-settled wakes in wall-clock longest stretch, surpassing total sleep', () => {
   const s = fixture.scenarios.all_self_settled_night;
   const [night] = buildNightSummaries(s.calendar);
   const scored = scoreNight(night, baseScoreOpts(s.activity));
 
   assert.equal(scored.details.total_sleep_minutes, s.expected!.total_sleep_minutes);
   assert.equal(scored.details.longest_stretch_minutes, s.expected!.longest_stretch_minutes);
-  assert.equal(scored.details.longest_stretch_minutes, scored.details.total_sleep_minutes);
+  assert.ok(scored.details.longest_stretch_minutes > scored.details.total_sleep_minutes);
+  assert.equal(
+    scored.details.longest_stretch_minutes,
+    Math.round((s.calendar[2].end_ts - s.calendar[0].begin_ts) / 60),
+  );
   assert.equal(scored.expectations.self_settled_wakes, s.expected!.self_settled_wakes);
   assert.equal(scored.expectations.parent_visit_wakes, s.expected!.parent_visit_wakes);
 });

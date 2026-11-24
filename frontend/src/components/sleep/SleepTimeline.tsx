@@ -180,7 +180,7 @@ export function SleepTimeline({ sleepScore, loading, baby, onSaved }: Props) {
           width,
           center: left + width / 2,
           durationLabel,
-          detailLabel: `Longest stretch · ${durationLabel} (${formatTime(span.start)}–${formatTime(span.end)}, excludes self-settled wakes)`,
+          detailLabel: `Longest stretch · ${durationLabel} (${formatTime(span.start)}–${formatTime(span.end)}, includes self-settled wakes)`,
         };
       }
     }

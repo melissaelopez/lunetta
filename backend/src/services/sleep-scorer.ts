@@ -284,25 +284,23 @@ export interface LongestStretch {
   start: number;
   /** End of the last sleep segment in the stretch (unix seconds). */
   end: number;
-  /** Total asleep duration in minutes (excludes awake time during bridged self-settled wakes). */
+  /** Wall-clock duration in minutes without parent intervention (includes bridged self-settled wakes). */
   duration_minutes: number;
 }
 
 /**
- * Finds the longest stretch of sleep, excluding self-settled wakes:
- *  - Any wake classified as `self_settled` bridges adjacent sleep segments rather
- *    than breaking the stretch, with its awake duration excluded from the stretch total.
- *  - Any wake corrected by the parent to `asleep` (false-positive wake) merges
- *    adjacent sleep segments into continuous sleep, including that gap's duration.
- *  - Non-self-settled wakes (`parent_visit`, `taken_out`, `unknown`) break a stretch.
+ * Finds the longest stretch of unattended sleep (wall-clock time without a parent visit):
+ *  - Any wake classified as `self_settled` or corrected to `asleep` bridges adjacent
+ *    sleep segments rather than breaking the stretch, and its wall-clock time is
+ *    included in the stretch duration (so longest stretch can exceed total sleep).
+ *  - Wakes requiring intervention (`parent_visit`, `taken_out`) or `unknown` wakes break a stretch.
  */
 export function findLongestStretch(night: NightSummary, wakes: WakeDetail[]): LongestStretch | null {
   if (night.sleep_segments.length === 0) return null;
-  const selfSettledStarts = new Set(
-    wakes.filter(w => w.response === 'self_settled').map(w => Math.round(w.start)),
-  );
-  const asleepStarts = new Set(
-    wakes.filter(w => w.response === 'asleep').map(w => Math.round(w.start)),
+  const bridgedStarts = new Set(
+    wakes
+      .filter(w => w.response === 'self_settled' || w.response === 'asleep')
+      .map(w => Math.round(w.start)),
   );
   const segs = [...night.sleep_segments].sort((a, b) => a.begin_ts - b.begin_ts);
 
@@ -310,39 +308,30 @@ export function findLongestStretch(night: NightSummary, wakes: WakeDetail[]): Lo
   let bestStart = segs[0].begin_ts;
   let bestEnd = segs[0].end_ts;
 
-  let runSleepSeconds = 0;
   let runStart = segs[0].begin_ts;
-  let mergedStart = segs[0].begin_ts;
-  let mergedEnd = segs[0].end_ts;
+  let runEnd = segs[0].end_ts;
 
-  const finishRun = (endTs: number) => {
-    const total = runSleepSeconds + (endTs - mergedStart);
+  const finishRun = () => {
+    const total = runEnd - runStart;
     if (total > bestSeconds) {
       bestSeconds = total;
       bestStart = runStart;
-      bestEnd = endTs;
+      bestEnd = runEnd;
     }
   };
 
   for (let i = 1; i < segs.length; i++) {
     const seg = segs[i];
-    if (seg.begin_ts <= mergedEnd || asleepStarts.has(Math.round(mergedEnd))) {
-      mergedEnd = Math.max(mergedEnd, seg.end_ts);
-      continue;
-    }
-
-    if (selfSettledStarts.has(Math.round(mergedEnd))) {
-      runSleepSeconds += mergedEnd - mergedStart;
+    if (seg.begin_ts <= runEnd || bridgedStarts.has(Math.round(runEnd))) {
+      runEnd = Math.max(runEnd, seg.end_ts);
     } else {
-      finishRun(mergedEnd);
-      runSleepSeconds = 0;
+      finishRun();
       runStart = seg.begin_ts;
+      runEnd = seg.end_ts;
     }
-    mergedStart = seg.begin_ts;
-    mergedEnd = seg.end_ts;
   }
 
-  finishRun(mergedEnd);
+  finishRun();
   return {
     start: bestStart,
     end: bestEnd,

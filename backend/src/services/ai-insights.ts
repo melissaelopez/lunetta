@@ -236,7 +236,7 @@ ${nightLabel}:
 - Sleep Score${isInProgress ? ' so far' : ''}: ${cn.total_score}/100
   - Duration: ${cn.duration_score}/35 (${formatDuration(cd.total_sleep_minutes)}${isInProgress ? ' so far' : ''}, ${formatDuration(cd.target_sleep_minutes)} target)
   - Continuity: ${cn.continuity_score}/35 (${cd.wake_count} wakes${isInProgress ? ' so far' : ''}; ${cx.self_settled_wakes ?? 0} self-settled, which never count as extra wakes; normal wake threshold ${cx.normal_wake_minutes} min${cx.normal_wake_minutes_custom ? ' — parent custom setting' : ''}, long-wake penalty −${cx.long_wake_penalty})
-  - Longest Stretch: ${cn.onset_score}/15 (${formatDuration(cd.longest_stretch_minutes)}; self-settled wakes don't break a stretch, and awake time during them is excluded)
+  - Longest Stretch: ${cn.onset_score}/15 (${formatDuration(cd.longest_stretch_minutes)} unattended wall-clock stretch; includes self-settled wakes, so it can exceed total sleep)
   - Timing: ${cn.timing_score}/15 (bedtime ${fmt(cd.bedtime)})
 - Bedtime: ${fmt(cd.bedtime)}${!isInProgress ? `\n- Wake time: ${fmt(cd.wake_time)}` : ''}
 - ${currentNight.night.sleep_segments.length} sleep segments${isInProgress ? ' so far' : ''}${currentFactorsLine}${currentNotesLine}
